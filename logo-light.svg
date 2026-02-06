@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0891b2" stop-opacity="0.08"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.08"/>
+    </linearGradient>
+
+    <linearGradient id="bar1" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="bar2" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="bar3" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="bar4" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#e11d48"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+
+  <!-- White background rounded square -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#ffffff"/>
+  
+  <!-- Subtle gradient overlay -->
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#glowGrad)"/>
+
+  <!-- Border ring -->
+  <rect x="3" y="3" width="506" height="506" rx="109" ry="109" fill="none" stroke="url(#bgGrad)" stroke-width="2" opacity="0.25"/>
+
+  <!-- Chart area background -->
+  <rect x="96" y="96" width="320" height="320" rx="24" ry="24" fill="#f8fafc" opacity="0.9"/>
+
+  <!-- Grid lines -->
+  <line x1="120" y1="176" x2="392" y2="176" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
+  <line x1="120" y1="236" x2="392" y2="236" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
+  <line x1="120" y1="296" x2="392" y2="296" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
+  <line x1="120" y1="356" x2="392" y2="356" stroke="#e2e8f0" stroke-width="1" opacity="0.5"/>
+
+  <!-- Bars -->
+  <g>
+    <rect x="136" y="200" width="44" height="156" rx="8" ry="8" fill="url(#bar1)" opacity="0.85"/>
+    <rect x="202" y="140" width="44" height="216" rx="8" ry="8" fill="url(#bar2)" opacity="0.85"/>
+    <rect x="268" y="176" width="44" height="180" rx="8" ry="8" fill="url(#bar3)" opacity="0.85"/>
+    <rect x="334" y="116" width="44" height="240" rx="8" ry="8" fill="url(#bar4)" opacity="0.85"/>
+  </g>
+
+  <!-- Trend line -->
+  <g>
+    <polyline 
+      points="158,188 224,148 290,168 356,120" 
+      fill="none" 
+      stroke="url(#lineGrad)" 
+      stroke-width="3.5" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+      opacity="0.8"
+    />
+    <circle cx="158" cy="188" r="5" fill="#d97706"/>
+    <circle cx="224" cy="148" r="5" fill="#c2410c"/>
+    <circle cx="290" cy="168" r="5" fill="#be185d"/>
+    <circle cx="356" cy="120" r="5" fill="#e11d48"/>
+  </g>
+
+  <!-- Dollar sign accent -->
+  <text x="378" y="105" font-family="system-ui, sans-serif" font-weight="700" font-size="36" fill="url(#bgGrad)" opacity="0.2">$</text>
+</svg>

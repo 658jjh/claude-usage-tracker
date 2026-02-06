@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Primary gradient: cyan → violet -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    
+    <!-- Subtle inner glow gradient -->
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#22d3ee" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.25"/>
+    </linearGradient>
+
+    <!-- Bar gradients (bottom → top) -->
+    <linearGradient id="bar1" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="bar2" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <linearGradient id="bar3" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <linearGradient id="bar4" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+
+    <!-- Trend line gradient -->
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+
+    <!-- Area fill under trend line -->
+    <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#fb7185" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <!-- Bar soft glow -->
+    <filter id="barGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Line glow -->
+    <filter id="lineGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Dot glow -->
+    <filter id="dotGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="108" ry="108" fill="#0f1629"/>
+  
+  <!-- Subtle gradient overlay for depth -->
+  <rect width="512" height="512" rx="108" ry="108" fill="url(#glowGrad)" opacity="0.5"/>
+
+  <!-- Thin gradient border -->
+  <rect x="3" y="3" width="506" height="506" rx="105" ry="105" fill="none" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- Inner chart panel -->
+  <rect x="80" y="100" width="352" height="312" rx="20" ry="20" fill="#131b2e" opacity="0.6"/>
+
+  <!-- Baseline -->
+  <line x1="110" y1="370" x2="402" y2="370" stroke="#253147" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="110" y1="296" x2="402" y2="296" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/>
+  <line x1="110" y1="222" x2="402" y2="222" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/>
+  <line x1="110" y1="148" x2="402" y2="148" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.3"/>
+
+  <!-- Bars with glow -->
+  <g filter="url(#barGlow)">
+    <!-- Bar 1 — ~50% -->
+    <rect x="122" y="238" width="50" height="132" rx="8" ry="8" fill="url(#bar1)" opacity="0.92"/>
+    
+    <!-- Bar 2 — ~78% -->
+    <rect x="192" y="168" width="50" height="202" rx="8" ry="8" fill="url(#bar2)" opacity="0.92"/>
+    
+    <!-- Bar 3 — ~62% -->
+    <rect x="262" y="206" width="50" height="164" rx="8" ry="8" fill="url(#bar3)" opacity="0.92"/>
+    
+    <!-- Bar 4 — ~92% -->
+    <rect x="332" y="128" width="50" height="242" rx="8" ry="8" fill="url(#bar4)" opacity="0.92"/>
+  </g>
+
+  <!-- Area fill under trend line -->
+  <polygon 
+    points="147,226 217,156 287,192 357,122 357,370 147,370" 
+    fill="url(#areaFill)"
+    opacity="0.6"
+  />
+
+  <!-- Trend line -->
+  <g filter="url(#lineGlow)">
+    <polyline 
+      points="147,226 217,156 287,192 357,122" 
+      fill="none" 
+      stroke="url(#lineGrad)" 
+      stroke-width="3" 
+      stroke-linecap="round" 
+      stroke-linejoin="round"
+      opacity="0.95"
+    />
+  </g>
+
+  <!-- Trend dots -->
+  <g filter="url(#dotGlow)">
+    <circle cx="147" cy="226" r="4.5" fill="#fbbf24"/>
+    <circle cx="217" cy="156" r="4.5" fill="#f59e0b"/>
+    <circle cx="287" cy="192" r="4.5" fill="#e879a0"/>
+    <circle cx="357" cy="122" r="4.5" fill="#fb7185"/>
+  </g>
+
+  <!-- Removed arrow for cleaner look -->
+</svg>
