@@ -148,43 +148,32 @@
     to { opacity: 0; transform: translateY(-6px); }
 }
 
-/* ─── Hours View (existing) ──────────────────────────────── */
+/* ─── Hours View (unified grid: date labels + hour cells) ── */
 
-.heatmap-container {
-    display: flex;
-    gap: 0;
+.heatmap-hours-grid {
+    display: grid;
+    grid-template-columns: 90px repeat(24, 1fr);
+    /* grid-template-rows set dynamically by JS */
+    gap: 3px;
+    overflow-x: auto;
 }
 
-.heatmap-day-labels {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding-top: 21px; /* must match: hour-label height (18px) + margin-bottom (3px) */
+.heatmap-corner {
+    /* Empty top-left cell */
 }
 
 .heatmap-day-label {
-    height: 22px;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-right: 10px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     color: var(--text-muted);
     letter-spacing: 0.02em;
-    min-width: 36px;
-}
-
-.heatmap-grid-wrapper {
-    flex: 1;
-    overflow-x: auto;
-}
-
-.heatmap-hour-labels {
-    display: grid;
-    grid-template-columns: repeat(24, 1fr);
-    gap: 3px;
-    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .heatmap-hour-label {
@@ -193,17 +182,9 @@
     color: var(--text-muted);
     text-align: center;
     letter-spacing: 0.02em;
-    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.heatmap-grid {
-    display: grid;
-    grid-template-columns: repeat(24, 1fr);
-    grid-template-rows: repeat(7, 22px);
-    gap: 3px;
 }
 
 /* ─── Days View (GitHub-style calendar) ──────────────────── */
@@ -458,9 +439,14 @@
 
 /* ─── Responsive ─────────────────────────────────────────── */
 
+/* Click pulse for hours cells too */
+.heatmap-cell.clicked {
+    animation: cellPulse 0.4s ease-out;
+}
+
 @media (max-width: 1024px) {
-    .heatmap-grid {
-        grid-template-columns: repeat(24, minmax(14px, 1fr));
+    .heatmap-hours-grid {
+        grid-template-columns: 80px repeat(24, minmax(14px, 1fr));
     }
     .heatmap-days-grid {
         gap: 2px;
@@ -474,7 +460,14 @@
         align-items: flex-start;
         gap: 12px;
     }
-    .heatmap-day-label,
+    .heatmap-hours-grid {
+        grid-template-columns: 64px repeat(24, minmax(10px, 1fr));
+        gap: 2px;
+    }
+    .heatmap-day-label {
+        font-size: 0.48rem;
+        padding-right: 6px;
+    }
     .heatmap-days-day-label {
         font-size: 0.5rem;
         min-width: 24px;
@@ -482,13 +475,6 @@
     }
     .heatmap-hour-label {
         font-size: 0.45rem;
-    }
-    .heatmap-grid {
-        gap: 2px;
-        grid-template-rows: repeat(7, 18px);
-    }
-    .heatmap-hour-labels {
-        gap: 2px;
     }
     .heatmap-days-grid {
         gap: 2px;

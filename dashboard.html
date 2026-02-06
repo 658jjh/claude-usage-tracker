@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claude Usage Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="data/data.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -167,15 +167,9 @@
                 </div>
             </div>
 
-            <!-- Hours View (existing) -->
+            <!-- Hours View — actual dates × 24 hour columns -->
             <div class="heatmap-view heatmap-view-active" id="heatmap-hours-view">
-                <div class="heatmap-container">
-                    <div class="heatmap-day-labels" id="heatmap-day-labels"></div>
-                    <div class="heatmap-grid-wrapper">
-                        <div class="heatmap-hour-labels" id="heatmap-hour-labels"></div>
-                        <div class="heatmap-grid" id="heatmap-grid"></div>
-                    </div>
-                </div>
+                <div class="heatmap-hours-grid" id="heatmap-hours-grid"></div>
             </div>
 
             <!-- Days View (new) -->

@@ -2,11 +2,11 @@
  * heatmap.js
  *
  * Peak activity heatmap with two switchable views:
- *   - Hours: 7 days × 24 hours grid (aggregated by day-of-week and hour)
+ *   - Hours: actual dates × 24 hour columns (only dates with data)
  *   - Days:  GitHub-style calendar grid (actual dates, last ~16 weeks)
  *
  * Features: segmented toggle, staggered cell animations, smooth view
- * transitions, polished tooltips, and click-to-scroll on day cells.
+ * transitions, polished tooltips, and click-to-scroll on cells.
  */
 
 import { toggleDay } from './sessions-table.js';
@@ -33,54 +33,66 @@ function heatmapLevel(cost, maxCost) {
 // ─── Hours View ─────────────────────────────────────────────
 
 function renderHoursView(allSessions) {
-    const heatmapData = Array.from({ length: 7 }, () =>
-        Array.from({ length: 24 }, () => ({ cost: 0, count: 0 }))
-    );
-
+    // Group sessions by date → hour
+    const byDate = {};
     allSessions.forEach(s => {
         if (!s.time || !s.date) return;
         const hour = parseInt(s.time.split(':')[0], 10);
         if (isNaN(hour) || hour < 0 || hour > 23) return;
-
-        const jsDay = new Date(s.date + 'T00:00:00').getDay();
-        const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
-
-        heatmapData[dayIdx][hour].cost += s.cost;
-        heatmapData[dayIdx][hour].count += 1;
+        if (!byDate[s.date]) byDate[s.date] = Array.from({ length: 24 }, () => ({ cost: 0, count: 0 }));
+        byDate[s.date][hour].cost += s.cost;
+        byDate[s.date][hour].count += 1;
     });
 
+    // Only dates with data, sorted newest first
+    const dates = Object.keys(byDate).sort().reverse();
+    const numRows = dates.length;
+    if (numRows === 0) return;
+
+    // Find max cost across all cells for scaling
     let maxCost = 0;
-    heatmapData.forEach(row => row.forEach(cell => {
-        if (cell.cost > maxCost) maxCost = cell.cost;
-    }));
+    for (const date of dates) {
+        for (const cell of byDate[date]) {
+            if (cell.cost > maxCost) maxCost = cell.cost;
+        }
+    }
 
-    const dayLabelsEl = document.getElementById('heatmap-day-labels');
-    dayLabelsEl.innerHTML = DAY_NAMES.map(d =>
-        `<div class="heatmap-day-label">${d}</div>`
-    ).join('');
+    // Unified grid: 1 date-label column + 24 hour columns
+    // Row 0 = hour labels, rows 1..N = date rows
+    const gridEl = document.getElementById('heatmap-hours-grid');
+    gridEl.style.gridTemplateRows = `18px repeat(${numRows}, 22px)`;
 
-    const hourLabelsEl = document.getElementById('heatmap-hour-labels');
-    hourLabelsEl.innerHTML = Array.from({ length: 24 }, (_, i) => {
+    let html = '';
+
+    // Row 0: corner cell + 24 hour labels
+    html += '<div class="heatmap-corner"></div>';
+    for (let i = 0; i < 24; i++) {
         const label = i % 3 === 0 ? i.toString() : '';
-        return `<div class="heatmap-hour-label">${label}</div>`;
-    }).join('');
+        html += `<div class="heatmap-hour-label">${label}</div>`;
+    }
 
-    const gridEl = document.getElementById('heatmap-grid');
-    let cellsHTML = '';
-    for (let day = 0; day < 7; day++) {
+    // Date rows
+    for (let r = 0; r < numRows; r++) {
+        const date = dates[r];
+        const dateObj = new Date(date + 'T00:00:00');
+        const label = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+        html += `<div class="heatmap-day-label" title="${date}">${label}</div>`;
+
         for (let hour = 0; hour < 24; hour++) {
-            const cell = heatmapData[day][hour];
+            const cell = byDate[date][hour];
             const level = heatmapLevel(cell.cost, maxCost);
-            const delay = (day * 12 + hour * 3);
-            cellsHTML += `<div class="heatmap-cell level-${level}"
-                data-day="${day}" data-hour="${hour}"
+            const delay = (r * 12 + hour * 3);
+            html += `<div class="heatmap-cell level-${level}"
+                data-date="${date}" data-hour="${hour}"
                 data-cost="${cell.cost.toFixed(2)}" data-count="${cell.count}"
                 style="animation-delay:${delay}ms"></div>`;
         }
     }
-    gridEl.innerHTML = cellsHTML;
 
+    gridEl.innerHTML = html;
     setupHoursTooltip(gridEl);
+    setupHoursClick(gridEl);
 }
 
 // ─── Days View ──────────────────────────────────────────────
@@ -146,14 +158,15 @@ function renderDaysView(allSessions) {
 
     const numWeeks = weeks.length;
 
-    // Render day-of-week labels (Mon, Tue, ... Sun)
+    // Render day-of-week labels (Sun at top, Mon at bottom)
     const dayLabelsEl = document.getElementById('heatmap-days-day-labels');
-    dayLabelsEl.innerHTML = DAY_NAMES.map((d, i) => {
-        const show = i % 2 === 0; // Show Mon, Wed, Fri, Sun
+    const reversedDays = [...DAY_NAMES].reverse(); // Sun, Sat, Fri, Thu, Wed, Tue, Mon
+    dayLabelsEl.innerHTML = reversedDays.map((d, i) => {
+        const show = i % 2 === 0; // Show Sun, Fri, Wed, Mon
         return `<div class="heatmap-days-day-label">${show ? d : ''}</div>`;
     }).join('');
 
-    // Render month labels
+    // Render month labels (newest first, track last seen month)
     const monthLabelsEl = document.getElementById('heatmap-days-month-labels');
     let monthLabelsHTML = '';
     let lastMonth = -1;
@@ -178,7 +191,7 @@ function renderDaysView(allSessions) {
     // so we iterate week-by-week (column-by-column), Mon-Sun within each
     let cellsHTML = '';
     for (let w = 0; w < numWeeks; w++) {
-        for (let dayRow = 0; dayRow < 7; dayRow++) {
+        for (let dayRow = 6; dayRow >= 0; dayRow--) {
             const entry = weeks[w].find(e => e.dayIdx === dayRow);
             if (entry) {
                 const level = heatmapLevel(entry.data.cost, maxCost);
@@ -222,17 +235,22 @@ function setupHoursTooltip(gridEl) {
 
     gridEl.addEventListener('mouseover', e => {
         const cell = e.target.closest('.heatmap-cell');
-        if (!cell) return;
-        const day = parseInt(cell.dataset.day, 10);
+        if (!cell || !cell.dataset.date) return;
+
+        const dateStr = cell.dataset.date;
         const hour = parseInt(cell.dataset.hour, 10);
         const cost = cell.dataset.cost;
         const count = cell.dataset.count;
+
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dayName = DAY_NAMES_FULL[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1];
+        const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
         const hourEnd = (hour + 1) % 24;
         const hourStr = hour.toString().padStart(2, '0') + ':00';
         const hourEndStr = hourEnd.toString().padStart(2, '0') + ':00';
 
-        tipDay.textContent = DAY_NAMES_FULL[day];
+        tipDay.textContent = `${dayName}, ${formatted}`;
         tipHour.textContent = `${hourStr} \u2014 ${hourEndStr}`;
         tipCount.textContent = count;
         tipCost.textContent = '$' + cost;
@@ -307,36 +325,48 @@ function positionTooltip(tooltip, e) {
 
 // ─── Click to Scroll ────────────────────────────────────────
 
+function scrollToSessionDay(cell) {
+    const dateStr = cell.dataset.date;
+    if (!dateStr) return;
+
+    const count = parseInt(cell.dataset.count, 10);
+    if (count === 0) return;
+
+    // Add a brief pulse animation to the clicked cell
+    cell.classList.add('clicked');
+    setTimeout(() => cell.classList.remove('clicked'), 400);
+
+    // Find the day row in the session log
+    const dayRow = document.getElementById('day-' + dateStr);
+    if (!dayRow) return;
+
+    // Scroll to the row with smooth animation
+    dayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Expand the day after scroll settles
+    setTimeout(() => {
+        if (!dayRow.classList.contains('expanded')) {
+            toggleDay(dateStr);
+        }
+        // Briefly highlight the row
+        dayRow.classList.add('heatmap-scroll-highlight');
+        setTimeout(() => dayRow.classList.remove('heatmap-scroll-highlight'), 1500);
+    }, 400);
+}
+
+function setupHoursClick(gridEl) {
+    gridEl.addEventListener('click', e => {
+        const cell = e.target.closest('.heatmap-cell');
+        if (!cell || !cell.dataset.date) return;
+        scrollToSessionDay(cell);
+    });
+}
+
 function setupDaysClick(gridEl) {
     gridEl.addEventListener('click', e => {
         const cell = e.target.closest('.heatmap-days-cell');
         if (!cell || cell.classList.contains('is-empty')) return;
-        const dateStr = cell.dataset.date;
-        if (!dateStr) return;
-
-        const count = parseInt(cell.dataset.count, 10);
-        if (count === 0) return;
-
-        // Add a brief pulse animation to the clicked cell
-        cell.classList.add('clicked');
-        setTimeout(() => cell.classList.remove('clicked'), 400);
-
-        // Find the day row in the session log
-        const dayRow = document.getElementById('day-' + dateStr);
-        if (!dayRow) return;
-
-        // Scroll to the row with smooth animation
-        dayRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        // Expand the day after scroll settles
-        setTimeout(() => {
-            if (!dayRow.classList.contains('expanded')) {
-                toggleDay(dateStr);
-            }
-            // Briefly highlight the row
-            dayRow.classList.add('heatmap-scroll-highlight');
-            setTimeout(() => dayRow.classList.remove('heatmap-scroll-highlight'), 1500);
-        }, 400);
+        scrollToSessionDay(cell);
     });
 }
 
