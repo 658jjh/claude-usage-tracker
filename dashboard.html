@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Usage Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="data/data.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Base styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+
+    <!-- Component styles -->
+    <link rel="stylesheet" href="css/components/header.css">
+    <link rel="stylesheet" href="css/components/stat-cards.css">
+    <link rel="stylesheet" href="css/components/cache-efficiency.css">
+    <link rel="stylesheet" href="css/components/charts.css">
+    <link rel="stylesheet" href="css/components/filter-bar.css">
+    <link rel="stylesheet" href="css/components/sessions-table.css">
+    <link rel="stylesheet" href="css/components/table-rows.css">
+    <link rel="stylesheet" href="css/components/detail-panel.css">
+    <link rel="stylesheet" href="css/components/badges.css">
+    <link rel="stylesheet" href="css/components/heatmap.css">
+    <link rel="stylesheet" href="css/components/expensive-callout.css">
+    <link rel="stylesheet" href="css/components/footer.css">
+
+    <!-- Utilities -->
+    <link rel="stylesheet" href="css/utilities.css">
+</head>
+<body>
+    <div class="ambient-blob"></div>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none"><defs><linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient><linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#34d399" stop-opacity="0.25"/><stop offset="50%" stop-color="#22d3ee" stop-opacity="0.08"/><stop offset="100%" stop-color="#a78bfa" stop-opacity="0.25"/></linearGradient><linearGradient id="bar1" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#34d399"/></linearGradient><linearGradient id="bar2" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient><linearGradient id="bar3" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient><linearGradient id="bar4" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient><linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#fb7185"/></linearGradient><linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.15"/><stop offset="100%" stop-color="#fb7185" stop-opacity="0.02"/></linearGradient></defs><rect width="512" height="512" rx="108" ry="108" fill="#0f1629"/><rect width="512" height="512" rx="108" ry="108" fill="url(#glowGrad)" opacity="0.5"/><rect x="3" y="3" width="506" height="506" rx="105" ry="105" fill="none" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.4"/><rect x="80" y="100" width="352" height="312" rx="20" ry="20" fill="#131b2e" opacity="0.6"/><line x1="110" y1="370" x2="402" y2="370" stroke="#253147" stroke-width="1.5" opacity="0.6"/><line x1="110" y1="296" x2="402" y2="296" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/><line x1="110" y1="222" x2="402" y2="222" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/><rect x="122" y="238" width="50" height="132" rx="8" ry="8" fill="url(#bar1)" opacity="0.92"/><rect x="192" y="168" width="50" height="202" rx="8" ry="8" fill="url(#bar2)" opacity="0.92"/><rect x="262" y="206" width="50" height="164" rx="8" ry="8" fill="url(#bar3)" opacity="0.92"/><rect x="332" y="128" width="50" height="242" rx="8" ry="8" fill="url(#bar4)" opacity="0.92"/><polygon points="147,226 217,156 287,192 357,122 357,370 147,370" fill="url(#areaFill)" opacity="0.6"/><polyline points="147,226 217,156 287,192 357,122" fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/><circle cx="147" cy="226" r="4.5" fill="#fbbf24"/><circle cx="217" cy="156" r="4.5" fill="#f59e0b"/><circle cx="287" cy="192" r="4.5" fill="#e879a0"/><circle cx="357" cy="122" r="4.5" fill="#fb7185"/></svg></div>
+                <div>
+                    <h1><span>Claude</span> Usage Tracker</h1>
+                </div>
+            </div>
+            <div class="header-meta">
+                <span class="updated"><span class="status-dot"></span>Last sync: <span id="last-updated">—</span></span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Today</div>
+                <div class="value" id="today-cost">$0.00</div>
+                <div class="yesterday-delta" id="yesterday-delta"></div>
+                <div class="subtext" id="today-date">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">This Week</div>
+                <div class="value" id="week-cost">$0.00</div>
+                <div class="subtext" id="week-range">&mdash;</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">This Month</div>
+                <div class="value" id="month-cost">$0.00</div>
+                <div class="subtext" id="month-name">—</div>
+                <div class="projection-line" id="month-projection" style="display:none;"></div>
+            </div>
+            <div class="stat-card">
+                <div class="label">All Time</div>
+                <div class="value" id="total-cost">$0.00</div>
+                <div class="subtext">Since tracking began</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Sessions</div>
+                <div class="value" id="session-count">0</div>
+                <div class="subtext">Across all sources</div>
+            </div>
+        </div>
+
+        <!-- Cache Efficiency -->
+        <div class="cache-efficiency-card" id="cache-efficiency-card">
+            <div class="cache-eff-gauge">
+                <svg viewBox="0 0 120 120" class="gauge-svg">
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="10" />
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent-emerald)"
+                            stroke-width="10" stroke-linecap="round"
+                            stroke-dasharray="326.73" stroke-dashoffset="326.73"
+                            transform="rotate(-90 60 60)"
+                            class="gauge-fill" id="gauge-fill" />
+                </svg>
+                <div class="gauge-center">
+                    <span class="gauge-pct" id="gauge-pct">0%</span>
+                    <span class="gauge-label">cache hit</span>
+                </div>
+            </div>
+            <div class="cache-eff-details">
+                <div class="cache-eff-title">
+                    <h3>Cache Efficiency</h3>
+                    <span class="cache-eff-rating" id="cache-eff-rating">--</span>
+                </div>
+                <div class="cache-eff-breakdown">
+                    <div class="cache-eff-row">
+                        <span class="cache-eff-dot dot-emerald"></span>
+                        <span class="cache-eff-label">Cache Read</span>
+                        <span class="cache-eff-value" id="eff-cache-read">0</span>
+                    </div>
+                    <div class="cache-eff-row">
+                        <span class="cache-eff-dot dot-amber"></span>
+                        <span class="cache-eff-label">Cache Write</span>
+                        <span class="cache-eff-value" id="eff-cache-write">0</span>
+                    </div>
+                    <div class="cache-eff-row">
+                        <span class="cache-eff-dot dot-cyan"></span>
+                        <span class="cache-eff-label">Input (non-cached)</span>
+                        <span class="cache-eff-value" id="eff-input">0</span>
+                    </div>
+                </div>
+                <div class="cache-eff-bar-container">
+                    <div class="cache-eff-bar">
+                        <div class="cache-eff-bar-read" id="eff-bar-read"></div>
+                        <div class="cache-eff-bar-write" id="eff-bar-write"></div>
+                        <div class="cache-eff-bar-input" id="eff-bar-input"></div>
+                    </div>
+                    <div class="cache-eff-bar-legend">
+                        <span><span class="cache-eff-dot dot-emerald"></span>Read</span>
+                        <span><span class="cache-eff-dot dot-amber"></span>Write</span>
+                        <span><span class="cache-eff-dot dot-cyan"></span>Input</span>
+                    </div>
+                </div>
+            </div>
+            <div class="cache-eff-savings">
+                <div class="savings-amount" id="savings-amount">$0.00</div>
+                <div class="savings-label">estimated savings</div>
+                <div class="savings-sublabel">vs. no caching</div>
+                <div class="savings-detail" id="savings-detail"></div>
+            </div>
+        </div>
+
+        <div class="chart-card chart-card-full">
+            <h3>Daily Spend by Source</h3>
+            <div class="chart-canvas-wrap">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid-half">
+            <div class="chart-card">
+                <h3>By Source</h3>
+                <div class="chart-canvas-wrap">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Spend by Model</h3>
+                <div class="chart-canvas-wrap">
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <div class="heatmap-header">
+                <h3 id="heatmap-title">Peak Hours</h3>
+                <div class="heatmap-toggle" id="heatmap-toggle">
+                    <div class="heatmap-toggle-slider" id="heatmap-toggle-slider"></div>
+                    <button class="heatmap-toggle-btn active" data-view="hours" id="toggle-hours-btn">Hours</button>
+                    <button class="heatmap-toggle-btn" data-view="days" id="toggle-days-btn">Days</button>
+                </div>
+            </div>
+
+            <!-- Hours View (existing) -->
+            <div class="heatmap-view heatmap-view-active" id="heatmap-hours-view">
+                <div class="heatmap-container">
+                    <div class="heatmap-day-labels" id="heatmap-day-labels"></div>
+                    <div class="heatmap-grid-wrapper">
+                        <div class="heatmap-hour-labels" id="heatmap-hour-labels"></div>
+                        <div class="heatmap-grid" id="heatmap-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Days View (new) -->
+            <div class="heatmap-view" id="heatmap-days-view">
+                <div class="heatmap-days-container">
+                    <div class="heatmap-days-day-labels" id="heatmap-days-day-labels"></div>
+                    <div class="heatmap-days-grid-wrapper">
+                        <div class="heatmap-days-month-labels" id="heatmap-days-month-labels"></div>
+                        <div class="heatmap-days-grid" id="heatmap-days-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="heatmap-legend">
+                <span class="heatmap-legend-label">Less</span>
+                <div class="heatmap-legend-cell" style="background: rgba(30, 41, 59, 0.25); border: 1px solid rgba(30, 41, 59, 0.15);"></div>
+                <div class="heatmap-legend-cell" style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.25));"></div>
+                <div class="heatmap-legend-cell" style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.4), rgba(96, 165, 250, 0.55));"></div>
+                <div class="heatmap-legend-cell" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.55), rgba(249, 158, 11, 0.7));"></div>
+                <div class="heatmap-legend-cell" style="background: linear-gradient(135deg, rgba(251, 113, 133, 0.7), rgba(244, 63, 94, 0.85));"></div>
+                <span class="heatmap-legend-label">More</span>
+            </div>
+        </div>
+        <div class="heatmap-tooltip" id="heatmap-tooltip">
+            <div class="tip-day"></div>
+            <div class="tip-hour"></div>
+            <div class="tip-stats">
+                <div class="tip-stat"><span class="tip-label">Sessions</span><span class="tip-value tip-count"></span></div>
+                <div class="tip-stat"><span class="tip-label">Cost</span><span class="tip-value tip-cost"></span></div>
+            </div>
+        </div>
+
+        <!-- Most Expensive Session Callout -->
+        <div class="expensive-callout" id="expensive-session-callout" style="display: none;">
+            <div class="expensive-callout-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                    <path d="M12 8v4"/>
+                    <path d="M12 16h.01"/>
+                </svg>
+            </div>
+            <div class="expensive-callout-content">
+                <div class="expensive-callout-title">Most Expensive Session Today</div>
+                <div class="expensive-callout-details">
+                    <span class="expensive-detail" id="exp-source"></span>
+                    <span class="expensive-detail" id="exp-model"></span>
+                    <span class="expensive-detail expensive-detail-time" id="exp-time"></span>
+                    <span class="expensive-detail expensive-detail-cost" id="exp-cost"></span>
+                </div>
+                <div class="expensive-callout-tokens" id="exp-tokens"></div>
+            </div>
+        </div>
+
+        <div class="sessions-section">
+            <div class="sessions-header">
+                <h3>Session Log</h3>
+                <div class="sessions-header-right">
+                    <span class="hint">click a row to expand</span>
+                    <button class="toggle-all-btn" id="toggle-all-btn" onclick="toggleAllDays()" title="Expand or collapse all date rows (Shift+E)">
+                        Expand All<span class="arrow">&#9660;</span><span class="kbd-hint">Shift+E</span>
+                    </button>
+                </div>
+            </div>
+            <div class="filter-bar" id="filter-bar">
+                <div class="filter-controls">
+                    <!-- Source multi-select -->
+                    <div class="filter-group" id="source-filter-group">
+                        <button class="filter-btn" id="source-filter-btn" type="button">
+                            Source <span class="chevron-down">&#9662;</span>
+                        </button>
+                        <div class="filter-dropdown" id="source-dropdown">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Model multi-select -->
+                    <div class="filter-group" id="model-filter-group">
+                        <button class="filter-btn" id="model-filter-btn" type="button">
+                            Model <span class="chevron-down">&#9662;</span>
+                        </button>
+                        <div class="filter-dropdown" id="model-dropdown">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Date range -->
+                    <span class="filter-label">From</span>
+                    <input type="date" class="filter-date" id="filter-date-from" />
+                    <span class="filter-label">To</span>
+                    <input type="date" class="filter-date" id="filter-date-to" />
+
+                    <!-- Min cost -->
+                    <div class="filter-cost-wrapper">
+                        <span class="dollar-sign">$</span>
+                        <input type="number" class="filter-cost" id="filter-min-cost"
+                               placeholder="Min" step="0.01" min="0" />
+                    </div>
+
+                    <!-- Status -->
+                    <div class="filter-status">
+                        <span class="filter-count" id="filter-count"></span>
+                        <button class="filter-clear-btn" id="filter-clear-btn" type="button">Clear All</button>
+                    </div>
+                </div>
+                <div class="filter-chips" id="filter-chips"></div>
+            </div>
+            <div class="sessions-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Sessions</th>
+                            <th>Models</th>
+                            <th>Input</th>
+                            <th>Output</th>
+                            <th>Cache Read</th>
+                            <th>Cache Write</th>
+                            <th style="text-align:right">Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessions-body">
+                        <tr><td colspan="8" class="no-data">Loading data…</td></tr>
+                    </tbody>
+                    <tfoot id="sessions-tfoot">
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span id="footer-text">claude usage dashboard</span>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
