@@ -209,7 +209,7 @@ export function buildDayDetail(date, sessions) {
                 <th>Time</th><th>Source</th><th>Model</th>
                 <th>Input</th><th>Output</th><th>Cache R</th><th>Cache W</th><th style="text-align:right">Cost</th>
             </tr></thead><tbody>`;
-    sessions.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    sessions.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
     for (const s of sessions) {
         const mi = getModelInfo(s.model);
         const sc = sourceClass(s.source);

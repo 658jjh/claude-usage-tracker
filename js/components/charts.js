@@ -132,7 +132,7 @@ function buildDailyChart(allSessions) {
         dailyBySource[s.date][s.source] = (dailyBySource[s.date][s.source] || 0) + s.cost;
         allSourcesSet.add(s.source);
     });
-    const chartDays = Object.keys(dailyBySource).sort();
+    const chartDays = Object.keys(dailyBySource).sort().slice(-15);
     const allSources = Array.from(allSourcesSet);
 
     const canvas = document.getElementById('dailyChart');
