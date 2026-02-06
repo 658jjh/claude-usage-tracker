@@ -36,6 +36,8 @@ cat > "$MACOS/launcher" << 'LAUNCHER'
 RESOURCES="$(dirname "$0")/../Resources"
 cd "$RESOURCES"
 
+LOG="$RESOURCES/data/launcher.log"
+
 # Find node — check common locations
 NODE=""
 for candidate in /opt/homebrew/bin/node /usr/local/bin/node /usr/bin/node; do
@@ -55,8 +57,8 @@ if [ -z "$NODE" ]; then
     exit 1
 fi
 
-# Collect fresh data
-"$NODE" "$RESOURCES/collect-usage.js" 2>/dev/null
+# Collect fresh data (log errors instead of suppressing)
+"$NODE" "$RESOURCES/collect-usage.js" > "$LOG" 2>&1
 
 # Find Python3 for HTTP server (ES6 modules require http://)
 PYTHON3=""
@@ -80,8 +82,18 @@ fi
 # Kill any existing server on port 8765
 lsof -ti:8765 | xargs kill -9 2>/dev/null || true
 
-# Start local HTTP server in background
-"$PYTHON3" -m http.server 8765 > /dev/null 2>&1 &
+# Start a no-cache HTTP server so the browser always loads fresh data
+"$PYTHON3" -c "
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+class H(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
+        super().end_headers()
+    def log_message(self, *a): pass
+HTTPServer(('127.0.0.1', 8765), H).serve_forever()
+" &
 SERVER_PID=$!
 
 # Give server time to start
@@ -90,9 +102,8 @@ sleep 1
 # Open dashboard via HTTP
 open "http://localhost:8765/dashboard.html"
 
-# Keep server running for 10 seconds (enough for browser to load all resources)
-# Dashboard caches everything so server can stop after initial load
-(sleep 10; kill $SERVER_PID 2>/dev/null) &
+# Keep server running for 30 seconds (enough for browser to load all resources)
+(sleep 30; kill $SERVER_PID 2>/dev/null) &
 LAUNCHER
 
 chmod +x "$MACOS/launcher"
