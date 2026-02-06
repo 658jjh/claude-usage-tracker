@@ -1,4 +1,6 @@
 .DS_Store
 data/data.js
+data/sessions-cache.json
+data/sessions-cache.json.tmp
 *.app/
 node_modules/
