@@ -1,0 +1,126 @@
+/* Detail panel */
+.day-detail-row td {
+    padding: 0 !important;
+    border-bottom: 1px solid var(--border);
+}
+
+.day-detail-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    opacity: 0;
+}
+
+.day-detail-wrapper.open { opacity: 1; }
+
+.day-detail {
+    padding: 20px 24px;
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--border);
+}
+
+/* Source breakdown */
+.source-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.source-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border-left: 3px solid var(--text-muted);
+    animation: fadeSlideUp 0.35s ease forwards;
+    opacity: 0;
+}
+
+.source-card:nth-child(1) { animation-delay: 0.05s; }
+.source-card:nth-child(2) { animation-delay: 0.12s; }
+
+.source-card.border-openclaw { border-left-color: var(--accent-amber); }
+.source-card.border-claude { border-left-color: var(--accent-blue); }
+.source-card.border-desktop { border-left-color: var(--accent-violet); }
+.source-card.border-cursor { border-left-color: var(--accent-cyan); }
+.source-card.border-windsurf { border-left-color: var(--accent-emerald); }
+.source-card.border-cline { border-left-color: var(--accent-rose); }
+.source-card.border-aider { border-left-color: #2dd4bf; }
+.source-card.border-continue { border-left-color: var(--accent-amber); }
+
+.source-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.source-card-header .source-name { font-weight: 600; font-size: 0.85rem; }
+.source-card-header .source-cost { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1rem; }
+.source-card-header .source-cost.cost-low-text { color: var(--accent-emerald); }
+.source-card-header .source-cost.cost-medium-text { color: var(--accent-amber); }
+.source-card-header .source-cost.cost-high-text { color: var(--accent-rose); }
+
+.source-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 16px;
+}
+
+.source-stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+}
+
+.source-stat .stat-label { color: var(--text-muted); }
+.source-stat .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Cost bar */
+.cost-bar-container { margin-top: 10px; }
+.cost-bar-bg {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.cost-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0;
+}
+
+.cost-bar-fill.fill-openclaw { background: linear-gradient(90deg, var(--accent-amber), #f59e0b); }
+.cost-bar-fill.fill-claude { background: linear-gradient(90deg, var(--accent-blue), var(--accent-violet)); }
+.cost-bar-fill.fill-desktop { background: linear-gradient(90deg, var(--accent-violet), #c4b5fd); }
+.cost-bar-fill.fill-cursor { background: linear-gradient(90deg, var(--accent-cyan), #67e8f9); }
+.cost-bar-fill.fill-windsurf { background: linear-gradient(90deg, var(--accent-emerald), #6ee7b7); }
+.cost-bar-fill.fill-cline { background: linear-gradient(90deg, var(--accent-rose), #fda4af); }
+.cost-bar-fill.fill-aider { background: linear-gradient(90deg, #2dd4bf, #5eead4); }
+.cost-bar-fill.fill-continue { background: linear-gradient(90deg, var(--accent-amber), #fcd34d); }
+
+/* Sub-table */
+.session-subtable { width: 100%; border-collapse: collapse; margin-top: 12px; }
+
+.session-subtable th {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-muted);
+    font-size: 0.6rem;
+    padding: 8px 12px;
+}
+
+.session-subtable td {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.session-subtable tr:last-child td { border-bottom: none; }
+.session-subtable tr:hover { background: rgba(34, 211, 238, 0.03); }

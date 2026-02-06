@@ -1,0 +1,188 @@
+/* Sessions Table */
+.sessions-section {
+    background: linear-gradient(135deg, rgba(21, 29, 46, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    animation: fadeSlideUp 0.6s ease forwards;
+    animation-delay: 0.3s;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sessions-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sessions-header h3 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.01em;
+}
+
+.sessions-header h3::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, var(--accent-amber), var(--accent-rose));
+    border-radius: 2px;
+}
+
+.sessions-header .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.sessions-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toggle-all-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-dim);
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.toggle-all-btn:hover {
+    background: rgba(34, 211, 238, 0.22);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.15);
+}
+
+.toggle-all-btn:active {
+    transform: scale(0.97);
+}
+
+.toggle-all-btn .arrow {
+    display: inline-block;
+    margin-left: 4px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-all-btn.is-expanded .arrow {
+    transform: rotate(180deg);
+}
+
+.toggle-all-btn .kbd-hint {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 4px;
+    vertical-align: middle;
+    line-height: 1.3;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: rgba(21, 29, 46, 0.98);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+td {
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+/* Table scroll wrapper */
+.sessions-table-wrap {
+    max-height: 70vh;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Totals row (tfoot) */
+tfoot#sessions-tfoot tr {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+}
+
+tfoot#sessions-tfoot td {
+    background: #1a2540;
+    border-top: 2px solid var(--accent-cyan);
+    border-bottom: none;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+tfoot#sessions-tfoot td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-cyan);
+}
+
+tfoot#sessions-tfoot .token-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+tfoot#sessions-tfoot .totals-session-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+tfoot#sessions-tfoot .totals-models-placeholder {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.token-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}

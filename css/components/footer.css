@@ -1,0 +1,17 @@
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 24px 0 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.no-data {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+}

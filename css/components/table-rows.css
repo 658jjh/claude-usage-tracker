@@ -1,0 +1,144 @@
+/* Day rows */
+.day-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.day-row:hover {
+    background: rgba(34, 211, 238, 0.03);
+}
+
+.day-row td:first-child {
+    position: relative;
+    padding-left: 36px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.day-row .chevron {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+
+.day-row.expanded .chevron {
+    transform: translateY(-50%) rotate(90deg);
+    color: var(--accent-cyan);
+}
+
+.day-row.expanded {
+    background: rgba(34, 211, 238, 0.04);
+}
+
+/* Weekly summary strip — full-width separator between week groups */
+.week-row td {
+    padding: 0 !important;
+    border-bottom: none;
+    background: rgba(30, 41, 59, 0.6);
+    border-top: 1px solid rgba(96, 165, 250, 0.15);
+    border-bottom: 1px solid rgba(96, 165, 250, 0.15);
+}
+
+.week-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+}
+
+.week-strip-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.week-strip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--accent-blue);
+    border-radius: 4px;
+    border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.week-strip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+}
+
+.week-strip-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.week-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.week-stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.week-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.week-stat-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+}
+
+.week-strip-cost {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    padding: 2px 10px;
+    background: rgba(96, 165, 250, 0.1);
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+/* Most expensive session row highlight */
+.expensive-session-row {
+    background: rgba(251, 113, 133, 0.06) !important;
+    border-left: 3px solid var(--accent-rose);
+}
+
+.expensive-session-row td:first-child {
+    padding-left: 9px; /* compensate for 3px border-left so alignment stays */
+}
+
+.expensive-session-row:hover {
+    background: rgba(251, 113, 133, 0.10) !important;
+}
+
+.expensive-session-row td:last-child .cost-badge {
+    box-shadow: 0 0 8px rgba(251, 113, 133, 0.3);
+}

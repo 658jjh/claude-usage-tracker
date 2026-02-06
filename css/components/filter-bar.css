@@ -1,0 +1,300 @@
+/* ── Filter Bar ──────────────────────────────── */
+.filter-bar {
+    padding: 16px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    position: relative;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    border-color: var(--accent-cyan);
+    background: var(--accent-cyan-dim);
+    color: var(--accent-cyan);
+}
+
+.filter-btn .chevron-down {
+    font-size: 0.5rem;
+    transition: transform 0.2s ease;
+}
+
+.filter-btn.open .chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Multi-select dropdown */
+.filter-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 200px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 50;
+    display: none;
+    padding: 6px 0;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.filter-dropdown.open {
+    display: block;
+}
+
+.filter-dropdown label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    transition: background 0.15s ease;
+}
+
+.filter-dropdown label:hover {
+    background: var(--bg-card-hover);
+}
+
+.filter-dropdown input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.filter-dropdown input[type="checkbox"]:checked {
+    background: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+}
+
+.filter-dropdown input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 3.5px;
+    top: 1px;
+    width: 4px;
+    height: 7px;
+    border: solid var(--bg-primary);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Date inputs */
+.filter-date {
+    padding: 7px 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    width: 130px;
+    color-scheme: dark;
+    transition: border-color 0.2s ease;
+}
+
+.filter-date:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+.filter-date::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+}
+
+/* Min cost input */
+.filter-cost-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-cost-wrapper .dollar-sign {
+    position: absolute;
+    left: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.filter-cost {
+    padding: 7px 10px 7px 22px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    width: 90px;
+    transition: border-color 0.2s ease;
+}
+
+.filter-cost:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+/* Remove spinner arrows from number input */
+.filter-cost::-webkit-outer-spin-button,
+.filter-cost::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.filter-cost { -moz-appearance: textfield; }
+
+/* Filter status & clear */
+.filter-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.filter-count .count-highlight {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
+.filter-clear-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: none;
+}
+
+.filter-clear-btn.visible {
+    display: inline-flex;
+}
+
+.filter-clear-btn:hover {
+    border-color: var(--accent-rose);
+    color: var(--accent-rose);
+}
+
+/* Filter chips row */
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 10px;
+}
+
+.filter-chips:empty {
+    display: none;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px 3px 10px;
+    border-radius: var(--radius-pill);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border: 1px solid;
+    animation: fadeSlideUp 0.2s ease forwards;
+}
+
+.filter-chip .chip-remove {
+    cursor: pointer;
+    font-size: 0.7rem;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+}
+
+.filter-chip .chip-remove:hover {
+    opacity: 1;
+}
+
+/* Chip color variants (reuse existing source/model dim colors) */
+.chip-source {
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border-color: rgba(96, 165, 250, 0.25);
+}
+
+.chip-model {
+    background: var(--accent-violet-dim);
+    color: var(--accent-violet);
+    border-color: rgba(167, 139, 250, 0.25);
+}
+
+.chip-date {
+    background: var(--accent-emerald-dim);
+    color: var(--accent-emerald);
+    border-color: rgba(52, 211, 153, 0.25);
+}
+
+.chip-cost {
+    background: var(--accent-amber-dim);
+    color: var(--accent-amber);
+    border-color: rgba(251, 191, 36, 0.25);
+}
+
+/* Label before date/cost inputs */
+.filter-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}

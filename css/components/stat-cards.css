@@ -1,0 +1,155 @@
+.stat-card {
+    background: linear-gradient(135deg, rgba(21, 29, 46, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeSlideUp 0.6s ease forwards;
+    opacity: 0;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(5) { animation-delay: 0.25s; }
+
+.stat-card:hover {
+    border-color: rgba(34, 211, 238, 0.1);
+    background: linear-gradient(135deg, rgba(26, 37, 64, 0.95) 0%, rgba(21, 29, 46, 0.95) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    opacity: 0.7;
+}
+
+.stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent-cyan), transparent); }
+.stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-blue), transparent); }
+.stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-amber), transparent); }
+.stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent-emerald), transparent); }
+.stat-card:nth-child(5)::before { background: linear-gradient(90deg, var(--accent-violet), transparent); }
+
+.stat-card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.stat-card .value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.stat-card:nth-child(1) .value { color: var(--accent-cyan); }
+.stat-card:nth-child(2) .value { color: var(--accent-blue); }
+.stat-card:nth-child(3) .value { color: var(--accent-amber); }
+.stat-card:nth-child(4) .value { color: var(--accent-emerald); }
+.stat-card:nth-child(5) .value { color: var(--accent-violet); }
+
+.stat-card .subtext {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* Yesterday delta indicator */
+.yesterday-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin-bottom: 4px;
+    min-height: 0;
+    line-height: 1.4;
+}
+
+.yesterday-delta:empty {
+    display: none;
+}
+
+.yesterday-delta .delta-arrow {
+    font-weight: 700;
+    margin-right: 2px;
+}
+
+.yesterday-delta.delta-up {
+    color: var(--accent-rose);
+}
+
+.yesterday-delta.delta-down {
+    color: var(--accent-emerald);
+}
+
+.yesterday-delta.delta-neutral {
+    color: var(--text-muted);
+}
+
+.stat-card .projection-line {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.70rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.stat-card .projection-line .proj-arrow {
+    color: var(--text-muted);
+    font-size: 0.65rem;
+}
+
+.stat-card .projection-line .proj-value {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.stat-card .projection-line .proj-value.proj-low {
+    color: var(--accent-emerald);
+}
+
+.stat-card .projection-line .proj-value.proj-mid {
+    color: var(--accent-amber);
+}
+
+.stat-card .projection-line .proj-value.proj-high {
+    color: var(--accent-rose);
+}
+
+.stat-card .projection-line .proj-sep {
+    color: var(--border-light);
+    font-weight: 300;
+}
+
+.stat-card .projection-line .proj-daily {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.stat-card .projection-line .proj-note {
+    font-size: 0.60rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    width: 100%;
+}

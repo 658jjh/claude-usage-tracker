@@ -1,0 +1,506 @@
+/* Peak Heatmap — toggle, hours view, days view, animations, tooltip */
+
+.heatmap-section {
+    background: linear-gradient(135deg, rgba(21, 29, 46, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 32px;
+    animation: fadeSlideUp 0.6s ease forwards;
+    animation-delay: 0.28s;
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle top accent line */
+.heatmap-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(251, 113, 133, 0.3), rgba(251, 191, 36, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.heatmap-section:hover {
+    border-color: rgba(251, 113, 133, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.heatmap-section:hover::before {
+    opacity: 1;
+}
+
+/* ─── Header with Toggle ─────────────────────────────────── */
+
+.heatmap-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.heatmap-section h3 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 0.01em;
+}
+
+.heatmap-section h3::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, var(--accent-rose), var(--accent-amber));
+    border-radius: 2px;
+}
+
+/* ─── Segmented Toggle Control ───────────────────────────── */
+
+.heatmap-toggle {
+    position: relative;
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(30, 41, 59, 0.6);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 0;
+}
+
+.heatmap-toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(96, 165, 250, 0.2));
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+}
+
+.heatmap-toggle-btn {
+    position: relative;
+    z-index: 1;
+    background: none;
+    border: none;
+    padding: 6px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.25s ease;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.heatmap-toggle-btn:hover {
+    color: var(--text-secondary);
+}
+
+.heatmap-toggle-btn.active {
+    color: var(--accent-cyan);
+}
+
+/* ─── View Transitions ───────────────────────────────────── */
+
+.heatmap-view {
+    display: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.heatmap-view-active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    animation: heatmapViewIn 0.3s ease forwards;
+}
+
+.heatmap-view-exiting {
+    display: block;
+    opacity: 0;
+    transform: translateY(-6px);
+    animation: heatmapViewOut 0.2s ease forwards;
+}
+
+@keyframes heatmapViewIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heatmapViewOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-6px); }
+}
+
+/* ─── Hours View (existing) ──────────────────────────────── */
+
+.heatmap-container {
+    display: flex;
+    gap: 0;
+}
+
+.heatmap-day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-top: 21px; /* must match: hour-label height (18px) + margin-bottom (3px) */
+}
+
+.heatmap-day-label {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    min-width: 36px;
+}
+
+.heatmap-grid-wrapper {
+    flex: 1;
+    overflow-x: auto;
+}
+
+.heatmap-hour-labels {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    gap: 3px;
+    margin-bottom: 3px;
+}
+
+.heatmap-hour-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    text-align: center;
+    letter-spacing: 0.02em;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    grid-template-rows: repeat(7, 22px);
+    gap: 3px;
+}
+
+/* ─── Days View (GitHub-style calendar) ──────────────────── */
+
+.heatmap-days-container {
+    display: flex;
+    gap: 0;
+}
+
+.heatmap-days-day-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-top: 22px;
+}
+
+.heatmap-days-day-label {
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    min-width: 36px;
+}
+
+.heatmap-days-grid-wrapper {
+    flex: 1;
+    overflow-x: auto;
+}
+
+.heatmap-days-month-labels {
+    display: grid;
+    gap: 3px;
+    margin-bottom: 3px;
+    height: 16px;
+}
+
+.heatmap-days-month-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.heatmap-days-grid {
+    display: grid;
+    grid-template-rows: repeat(7, 18px);
+    gap: 3px;
+    grid-auto-flow: column;
+}
+
+.heatmap-days-cell {
+    min-width: 14px;
+    min-height: 14px;
+    border-radius: 3px;
+}
+
+.heatmap-days-cell.is-empty {
+    visibility: hidden;
+}
+
+/* Today indicator - subtle ring */
+.heatmap-days-cell.is-today {
+    outline: 2px solid rgba(34, 211, 238, 0.5);
+    outline-offset: 1px;
+}
+
+/* Clickable cursor for days with data */
+.heatmap-days-cell:not(.is-empty) {
+    cursor: pointer;
+}
+
+/* Click pulse animation */
+@keyframes cellPulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(34, 211, 238, 0); }
+    100% { box-shadow: 0 0 0 8px rgba(34, 211, 238, 0); }
+}
+
+.heatmap-days-cell.clicked {
+    animation: cellPulse 0.4s ease-out;
+}
+
+/* ─── Shared Cell Styles ─────────────────────────────────── */
+
+/* Cell entrance animation */
+@keyframes heatmapCellIn {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.heatmap-cell {
+    border-radius: 4px;
+    min-width: 14px;
+    min-height: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s ease,
+                filter 0.2s ease;
+    animation: heatmapCellIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.3);
+    z-index: 10;
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.4);
+    filter: brightness(1.2);
+}
+
+/* Refined intensity color palette with subtle gradients */
+.heatmap-cell.level-0 {
+    background: rgba(30, 41, 59, 0.25);
+    border: 1px solid rgba(30, 41, 59, 0.15);
+}
+
+.heatmap-cell.level-1 {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.25));
+    border: 1px solid rgba(34, 211, 238, 0.08);
+}
+
+.heatmap-cell.level-2 {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.4), rgba(96, 165, 250, 0.55));
+    border: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+.heatmap-cell.level-3 {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.55), rgba(249, 158, 11, 0.7));
+    border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.heatmap-cell.level-4 {
+    background: linear-gradient(135deg, rgba(251, 113, 133, 0.7), rgba(244, 63, 94, 0.85));
+    border: 1px solid rgba(251, 113, 133, 0.2);
+    box-shadow: 0 0 8px rgba(251, 113, 133, 0.15);
+}
+
+/* ─── Tooltip — frosted glass effect ─────────────────────── */
+
+.heatmap-tooltip {
+    position: fixed;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(34, 211, 238, 0.12);
+    border-radius: 10px;
+    padding: 12px 16px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.02);
+    min-width: 150px;
+}
+
+.heatmap-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.heatmap-tooltip .tip-day {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.heatmap-tooltip .tip-hour {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.6);
+}
+
+.heatmap-tooltip .tip-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.heatmap-tooltip .tip-stat {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 0.72rem;
+}
+
+.heatmap-tooltip .tip-stat .tip-label {
+    color: var(--text-muted);
+}
+
+.heatmap-tooltip .tip-stat .tip-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--accent-cyan);
+}
+
+/* ─── Legend ──────────────────────────────────────────────── */
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+.heatmap-legend-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    padding: 0 4px;
+}
+
+.heatmap-legend-cell {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    transition: transform 0.2s ease;
+}
+
+.heatmap-legend-cell:hover {
+    transform: scale(1.2);
+}
+
+/* ─── Scroll Highlight on Session Row ────────────────────── */
+
+@keyframes scrollHighlightPulse {
+    0% { box-shadow: inset 0 0 0 0 rgba(34, 211, 238, 0); background-color: transparent; }
+    15% { box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.08); background-color: rgba(34, 211, 238, 0.04); }
+    100% { box-shadow: inset 0 0 0 0 rgba(34, 211, 238, 0); background-color: transparent; }
+}
+
+.day-row.heatmap-scroll-highlight {
+    animation: scrollHighlightPulse 1.5s ease-out;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+    .heatmap-grid {
+        grid-template-columns: repeat(24, minmax(14px, 1fr));
+    }
+    .heatmap-days-grid {
+        gap: 2px;
+    }
+}
+
+@media (max-width: 640px) {
+    .heatmap-section { padding: 20px; }
+    .heatmap-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .heatmap-day-label,
+    .heatmap-days-day-label {
+        font-size: 0.5rem;
+        min-width: 24px;
+        padding-right: 6px;
+    }
+    .heatmap-hour-label {
+        font-size: 0.45rem;
+    }
+    .heatmap-grid {
+        gap: 2px;
+        grid-template-rows: repeat(7, 18px);
+    }
+    .heatmap-hour-labels {
+        gap: 2px;
+    }
+    .heatmap-days-grid {
+        gap: 2px;
+        grid-template-rows: repeat(7, 14px);
+    }
+    .heatmap-days-cell {
+        min-width: 10px;
+        min-height: 10px;
+        border-radius: 2px;
+    }
+    .heatmap-toggle-btn {
+        padding: 5px 12px;
+        font-size: 0.65rem;
+    }
+}

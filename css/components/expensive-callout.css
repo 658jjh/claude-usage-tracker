@@ -1,0 +1,98 @@
+/* Most Expensive Session Callout */
+.expensive-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: linear-gradient(135deg, rgba(251, 113, 133, 0.06) 0%, rgba(251, 191, 36, 0.04) 100%);
+    border: 1px solid rgba(251, 113, 133, 0.15);
+    border-left: 2px solid var(--accent-rose);
+    border-radius: var(--radius);
+    padding: 18px 24px;
+    margin-bottom: 24px;
+    animation: fadeSlideUp 0.6s ease forwards;
+    animation-delay: 0.28s;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.expensive-callout:hover {
+    border-color: rgba(251, 113, 133, 0.25);
+    box-shadow: 0 4px 20px rgba(251, 113, 133, 0.06);
+}
+
+.expensive-callout-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    background: var(--accent-rose-dim);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-rose);
+    margin-top: 2px;
+}
+
+.expensive-callout-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.expensive-callout-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--accent-rose);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expensive-callout-details {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.expensive-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.expensive-detail-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.expensive-detail-cost {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--accent-rose);
+    background: var(--accent-rose-dim);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+}
+
+.expensive-callout-tokens {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.expensive-callout-tokens .token-label {
+    color: var(--text-muted);
+}
+
+.expensive-callout-tokens .token-value {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
