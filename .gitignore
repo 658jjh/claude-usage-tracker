@@ -1,0 +1,4 @@
+.DS_Store
+data/data.js
+*.app/
+node_modules/
