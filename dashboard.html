@@ -17,7 +17,6 @@
     <!-- Component styles -->
     <link rel="stylesheet" href="css/components/header.css">
     <link rel="stylesheet" href="css/components/stat-cards.css">
-    <link rel="stylesheet" href="css/components/cache-efficiency.css">
     <link rel="stylesheet" href="css/components/charts.css">
     <link rel="stylesheet" href="css/components/filter-bar.css">
     <link rel="stylesheet" href="css/components/sessions-table.css">
@@ -73,65 +72,6 @@
                 <div class="label">Sessions</div>
                 <div class="value" id="session-count">0</div>
                 <div class="subtext">Across all sources</div>
-            </div>
-        </div>
-
-        <!-- Cache Efficiency -->
-        <div class="cache-efficiency-card" id="cache-efficiency-card">
-            <div class="cache-eff-gauge">
-                <svg viewBox="0 0 120 120" class="gauge-svg">
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="10" />
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent-emerald)"
-                            stroke-width="10" stroke-linecap="round"
-                            stroke-dasharray="326.73" stroke-dashoffset="326.73"
-                            transform="rotate(-90 60 60)"
-                            class="gauge-fill" id="gauge-fill" />
-                </svg>
-                <div class="gauge-center">
-                    <span class="gauge-pct" id="gauge-pct">0%</span>
-                    <span class="gauge-label">cache hit</span>
-                </div>
-            </div>
-            <div class="cache-eff-details">
-                <div class="cache-eff-title">
-                    <h3>Cache Efficiency</h3>
-                    <span class="cache-eff-rating" id="cache-eff-rating">--</span>
-                </div>
-                <div class="cache-eff-breakdown">
-                    <div class="cache-eff-row">
-                        <span class="cache-eff-dot dot-emerald"></span>
-                        <span class="cache-eff-label">Cache Read</span>
-                        <span class="cache-eff-value" id="eff-cache-read">0</span>
-                    </div>
-                    <div class="cache-eff-row">
-                        <span class="cache-eff-dot dot-amber"></span>
-                        <span class="cache-eff-label">Cache Write</span>
-                        <span class="cache-eff-value" id="eff-cache-write">0</span>
-                    </div>
-                    <div class="cache-eff-row">
-                        <span class="cache-eff-dot dot-cyan"></span>
-                        <span class="cache-eff-label">Input (non-cached)</span>
-                        <span class="cache-eff-value" id="eff-input">0</span>
-                    </div>
-                </div>
-                <div class="cache-eff-bar-container">
-                    <div class="cache-eff-bar">
-                        <div class="cache-eff-bar-read" id="eff-bar-read"></div>
-                        <div class="cache-eff-bar-write" id="eff-bar-write"></div>
-                        <div class="cache-eff-bar-input" id="eff-bar-input"></div>
-                    </div>
-                    <div class="cache-eff-bar-legend">
-                        <span><span class="cache-eff-dot dot-emerald"></span>Read</span>
-                        <span><span class="cache-eff-dot dot-amber"></span>Write</span>
-                        <span><span class="cache-eff-dot dot-cyan"></span>Input</span>
-                    </div>
-                </div>
-            </div>
-            <div class="cache-eff-savings">
-                <div class="savings-amount" id="savings-amount">$0.00</div>
-                <div class="savings-label">estimated savings</div>
-                <div class="savings-sublabel">vs. no caching</div>
-                <div class="savings-detail" id="savings-detail"></div>
             </div>
         </div>
 

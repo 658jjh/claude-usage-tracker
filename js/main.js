@@ -19,7 +19,7 @@ import { getModelInfo } from './utils/model-utils.js';
 
 // Components
 import { initCounterAnimations } from './components/animations.js';
-import { updateCacheEfficiency } from './components/cache-efficiency.js';
+
 import { initCharts } from './components/charts.js';
 import {
     initFilterDropdowns,
@@ -118,9 +118,6 @@ async function loadData() {
         weekCostEl.dataset.decimals = '2';
         weekCostEl.textContent = '$0.00';
         document.getElementById('week-range').textContent = formatWeekLabel(thisWeekStart);
-
-        // === Cache Efficiency ===
-        updateCacheEfficiency(allSessions);
 
         // === Yesterday Delta ===
         updateYesterdayDelta(summary, allSessions);

@@ -34,7 +34,7 @@ No cloud. No telemetry. Everything stays on your machine.
 | **Beautiful Dashboard** | Dark-themed UI with Chart.js visualizations |
 | **Cost Breakdown** | Daily, weekly, monthly, and all-time cost tracking |
 | **Model Analytics** | Per-model cost breakdown across Opus, Sonnet, and Haiku families |
-| **Cache Efficiency** | Animated gauge showing cache hit rate with dollar savings calculation |
+
 | **Heatmaps** | Two views — Peak Hours (day × hour grid) and Peak Days (GitHub-style calendar) |
 | **Session Log** | Expandable day-by-day session details with color-coded source cards |
 | **Filtering** | Multi-criteria filtering (source, model, date range, min cost) with visual chips |
