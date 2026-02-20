@@ -143,6 +143,7 @@ export function getModelInfo(model) {
     if (m.includes('opus-4-0') || m.includes('opus-4.0')) return { name: 'Opus 4.0', cls: 'model-opus' };
 
     // Sonnet 4.x versions
+    if (m.includes('sonnet-4-6') || m.includes('sonnet-4.6')) return { name: 'Sonnet 4.6', cls: 'model-sonnet' };
     if (m.includes('sonnet-4-5') || m.includes('sonnet-4.5')) return { name: 'Sonnet 4.5', cls: 'model-sonnet' };
     if (m.includes('sonnet-4-0') || m.includes('sonnet-4.0') || m.includes('sonnet-4-20')) return { name: 'Sonnet 4', cls: 'model-sonnet' };
 
