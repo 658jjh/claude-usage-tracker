@@ -44,8 +44,11 @@ function renderHoursView(allSessions) {
         byDate[s.date][hour].count += 1;
     });
 
-    // Only dates with data, sorted newest first
-    const dates = Object.keys(byDate).sort().reverse();
+    // Only dates with data, last 30 days, sorted newest first
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 29);
+    const cutoffStr = formatDateStr(cutoff);
+    const dates = Object.keys(byDate).filter(d => d >= cutoffStr).sort().reverse();
     const numRows = dates.length;
     if (numRows === 0) return;
 
