@@ -76,10 +76,15 @@
         </div>
 
         <div class="chart-card chart-card-full">
-            <h3>Daily Spend by Source</h3>
+            <h3>Daily Spend by Source <span class="chart-hint">click bar to filter</span></h3>
             <div class="chart-canvas-wrap">
                 <canvas id="dailyChart"></canvas>
             </div>
+        </div>
+
+        <div id="day-filter-bar" style="display:none">
+            <span class="day-filter-label">Filtered: <strong id="day-filter-date"></strong></span>
+            <button class="day-filter-clear" onclick="clearDayFilter()">&#x2715; clear</button>
         </div>
 
         <div class="charts-grid-half">

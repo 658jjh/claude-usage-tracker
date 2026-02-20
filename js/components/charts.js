@@ -11,6 +11,18 @@ let dailyChart = null;
 let sourceChart = null;
 let modelChart = null;
 
+// Day-filter state
+let selectedDayIndex = null;
+let allSessionsRef = [];
+let chartDaysRef = [];
+
+const modelColorMap = {
+    'Opus': '#fb7185',
+    'Sonnet': '#60a5fa',
+    'Haiku': '#34d399',
+    'Unknown': '#a78bfa',
+};
+
 const sourceColors = {
     'OpenClaw': '#fbbf24',
     'Clawdbot': '#fbbf24',
@@ -119,6 +131,8 @@ export function initCharts(allSessions) {
     Chart.defaults.font.family = "'JetBrains Mono', monospace";
     Chart.defaults.font.size = 10;
 
+    allSessionsRef = allSessions;
+
     buildDailyChart(allSessions);
     buildSourceChart(allSessions);
     buildModelChart(allSessions);
@@ -133,10 +147,12 @@ function buildDailyChart(allSessions) {
         allSourcesSet.add(s.source);
     });
     const chartDays = Object.keys(dailyBySource).sort().slice(-15);
+    chartDaysRef = chartDays;
     const allSources = Array.from(allSourcesSet);
 
     const canvas = document.getElementById('dailyChart');
     const ctx = canvas.getContext('2d');
+    canvas.style.cursor = 'pointer';
 
     const dailyDatasets = allSources.map(source => {
         const color = getSourceColor(source);
@@ -228,6 +244,96 @@ function buildDailyChart(allSessions) {
             }
         }
     });
+
+    canvas.addEventListener('click', e => {
+        const elements = dailyChart.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
+        if (!elements.length) return;
+        const idx = elements[0].index;
+        selectedDayIndex = idx === selectedDayIndex ? null : idx;
+        applyDaySelection();
+    });
+}
+
+// ─── Day Filter Logic ────────────────────────────────────────
+
+function applyDaySelection() {
+    const isFiltered = selectedDayIndex !== null;
+
+    // Update bar highlight — dim unselected bars
+    dailyChart.data.datasets.forEach(dataset => {
+        const color = getSourceColor(dataset.label);
+        dataset.backgroundColor = chartDaysRef.map((_, i) =>
+            !isFiltered || i === selectedDayIndex ? color + 'CC' : color + '22'
+        );
+        dataset.hoverBackgroundColor = chartDaysRef.map((_, i) =>
+            !isFiltered || i === selectedDayIndex ? color : color + '44'
+        );
+    });
+    dailyChart.update('none');
+
+    const sessions = isFiltered
+        ? allSessionsRef.filter(s => s.date === chartDaysRef[selectedDayIndex])
+        : allSessionsRef;
+
+    const dateLabel = isFiltered ? dailyChart.data.labels[selectedDayIndex] : null;
+
+    updateDoughnutCharts(sessions);
+    updateDayFilterBadge(dateLabel);
+}
+
+function updateDoughnutCharts(sessions) {
+    // --- Source Chart ---
+    const sourceTotals = {};
+    sessions.forEach(s => {
+        sourceTotals[s.source] = (sourceTotals[s.source] || 0) + s.cost;
+    });
+    const sourceEntries = Object.entries(sourceTotals).sort((a, b) => b[1] - a[1]);
+    const sourceLabels = sourceEntries.map(([name]) => name);
+    const sourceData = sourceEntries.map(([, cost]) => cost);
+    const sourceBgColors = sourceLabels.map(s => getSourceColor(s));
+    const totalCostSrc = sourceData.reduce((a, b) => a + b, 0);
+
+    sourceChart.data.labels = sourceLabels;
+    sourceChart.data.datasets[0].data = sourceData;
+    sourceChart.data.datasets[0].backgroundColor = sourceBgColors.map(c => c + 'CC');
+    sourceChart.data.datasets[0].hoverBackgroundColor = sourceBgColors;
+    sourceChart.options.plugins.centerText.text = '$' + totalCostSrc.toFixed(2);
+    sourceChart.update();
+
+    // --- Model Chart ---
+    const modelTotals = {};
+    sessions.forEach(s => {
+        const family = getModelFamily(s.model);
+        modelTotals[family] = (modelTotals[family] || 0) + s.cost;
+    });
+    const modelEntries = Object.entries(modelTotals).sort((a, b) => b[1] - a[1]);
+    const modelLabels = modelEntries.map(([name]) => name);
+    const modelData = modelEntries.map(([, cost]) => cost);
+    const mColors = modelLabels.map(name => modelColorMap[name] || '#a78bfa');
+    const totalCostMdl = modelData.reduce((a, b) => a + b, 0);
+
+    modelChart.data.labels = modelLabels;
+    modelChart.data.datasets[0].data = modelData;
+    modelChart.data.datasets[0].backgroundColor = mColors.map(c => c + 'CC');
+    modelChart.data.datasets[0].hoverBackgroundColor = mColors;
+    modelChart.options.plugins.centerText.text = '$' + totalCostMdl.toFixed(2);
+    modelChart.update();
+}
+
+function updateDayFilterBadge(dateLabel) {
+    const bar = document.getElementById('day-filter-bar');
+    const dateEl = document.getElementById('day-filter-date');
+    if (dateLabel) {
+        dateEl.textContent = dateLabel;
+        bar.style.display = 'flex';
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+export function clearDayFilter() {
+    selectedDayIndex = null;
+    applyDaySelection();
 }
 
 function buildSourceChart(allSessions) {
@@ -327,13 +433,6 @@ function buildModelChart(allSessions) {
         const family = getModelFamily(s.model);
         modelTotals[family] = (modelTotals[family] || 0) + s.cost;
     });
-
-    const modelColorMap = {
-        'Opus': '#fb7185',
-        'Sonnet': '#60a5fa',
-        'Haiku': '#34d399',
-        'Unknown': '#a78bfa',
-    };
 
     const modelEntries = Object.entries(modelTotals).sort((a, b) => b[1] - a[1]);
     const modelLabels = modelEntries.map(([name]) => name);

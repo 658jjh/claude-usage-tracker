@@ -20,7 +20,7 @@ import { getModelInfo } from './utils/model-utils.js';
 // Components
 import { initCounterAnimations } from './components/animations.js';
 
-import { initCharts } from './components/charts.js';
+import { initCharts, clearDayFilter } from './components/charts.js';
 import {
     initFilterDropdowns,
     applyFilters,
@@ -47,6 +47,7 @@ let totalSessionCount = 0;
 // toggleDay and filter removal functions are already exposed by their respective modules
 // We just need to expose toggleAllDays and set up the filter callback
 window.toggleAllDays = toggleAllDays;
+window.clearDayFilter = clearDayFilter;
 
 // === Main Data Loading Function ===
 
