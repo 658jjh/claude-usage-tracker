@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build a standalone macOS .app for Claude Usage Dashboard
-# Double-click to collect fresh data + open dashboard — no install needed.
+# Double-click to collect fresh data + view dashboard in a native window.
 
 set -e
 
@@ -19,6 +19,16 @@ rm -rf "$APP_DIR"
 # Create .app bundle structure
 mkdir -p "$MACOS" "$RESOURCES/data"
 
+# ─── Compile native Swift app ─────────────────────────────
+echo "⚙️  Compiling native app ..."
+swiftc -O \
+    -o "$MACOS/ClaudeUsageDashboard" \
+    "$SCRIPT_DIR/App.swift" \
+    -framework Cocoa \
+    -framework WebKit \
+    -target "$(uname -m)-apple-macos12.0"
+echo "  ✅ Binary compiled"
+
 # Copy the core files into Resources
 cp "$SCRIPT_DIR/collect-usage.js" "$RESOURCES/"
 cp "$SCRIPT_DIR/dashboard.html" "$RESOURCES/"
@@ -27,87 +37,6 @@ cp "$SCRIPT_DIR/dashboard.html" "$RESOURCES/"
 cp -r "$SCRIPT_DIR/css" "$RESOURCES/"
 cp -r "$SCRIPT_DIR/js" "$RESOURCES/"
 
-# Create the launcher script
-cat > "$MACOS/launcher" << 'LAUNCHER'
-#!/bin/bash
-# Claude Usage Dashboard — macOS App Launcher
-# Collects fresh usage data, starts a local server, then opens the dashboard.
-
-RESOURCES="$(dirname "$0")/../Resources"
-cd "$RESOURCES"
-
-LOG="$RESOURCES/data/launcher.log"
-
-# Find node — check common locations
-NODE=""
-for candidate in /opt/homebrew/bin/node /usr/local/bin/node /usr/bin/node; do
-    if [ -x "$candidate" ]; then
-        NODE="$candidate"
-        break
-    fi
-done
-
-# Fallback: try PATH
-if [ -z "$NODE" ]; then
-    NODE=$(which node 2>/dev/null || true)
-fi
-
-if [ -z "$NODE" ]; then
-    osascript -e 'display alert "Node.js not found" message "Claude Usage Dashboard requires Node.js to collect data. Please install it from https://nodejs.org" as critical'
-    exit 1
-fi
-
-# Collect fresh data (log errors instead of suppressing)
-"$NODE" "$RESOURCES/collect-usage.js" > "$LOG" 2>&1
-
-# Find Python3 for HTTP server (ES6 modules require http://)
-PYTHON3=""
-for candidate in /opt/homebrew/bin/python3 /usr/local/bin/python3 /usr/bin/python3; do
-    if [ -x "$candidate" ]; then
-        PYTHON3="$candidate"
-        break
-    fi
-done
-
-if [ -z "$PYTHON3" ]; then
-    PYTHON3=$(which python3 2>/dev/null || true)
-fi
-
-if [ -z "$PYTHON3" ]; then
-    # Fallback: try opening file directly (won't work with ES6 modules but better than nothing)
-    open "$RESOURCES/dashboard.html"
-    exit 0
-fi
-
-# Kill any existing server on port 8765
-lsof -ti:8765 | xargs kill -9 2>/dev/null || true
-
-# Start a no-cache HTTP server so the browser always loads fresh data
-"$PYTHON3" -c "
-from http.server import SimpleHTTPRequestHandler, HTTPServer
-class H(SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-        self.send_header('Pragma', 'no-cache')
-        self.send_header('Expires', '0')
-        super().end_headers()
-    def log_message(self, *a): pass
-HTTPServer(('127.0.0.1', 8765), H).serve_forever()
-" &
-SERVER_PID=$!
-
-# Give server time to start
-sleep 1
-
-# Open dashboard via HTTP
-open "http://localhost:8765/dashboard.html"
-
-# Keep server running for 30 seconds (enough for browser to load all resources)
-(sleep 30; kill $SERVER_PID 2>/dev/null) &
-LAUNCHER
-
-chmod +x "$MACOS/launcher"
-
 # Create Info.plist
 cat > "$CONTENTS/Info.plist" << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -115,7 +44,7 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>launcher</string>
+    <string>ClaudeUsageDashboard</string>
     <key>CFBundleName</key>
     <string>Claude Usage Dashboard</string>
     <key>CFBundleDisplayName</key>
@@ -123,9 +52,9 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.openclaw.usage-dashboard</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>2.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>2.0</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleIconFile</key>
@@ -133,8 +62,6 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>NSHighResolutionCapable</key>
-    <true/>
-    <key>LSUIElement</key>
     <true/>
 </dict>
 </plist>
@@ -202,4 +129,4 @@ echo ""
 echo "You can now:"
 echo "  • Double-click '$APP_NAME.app' in Finder"
 echo "  • Drag it to /Applications or your Desktop"
-echo "  • It collects fresh data and opens the dashboard each time"
+echo "  • It opens as a native app — no browser or Python needed"
