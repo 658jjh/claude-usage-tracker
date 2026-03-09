@@ -14,6 +14,9 @@ import { costClass, sourceClass } from '../utils/class-utils.js';
 let mostExpensiveFile = null;
 let mostExpensiveDate = null;
 
+// Store session objects for detail modal lookup
+let _sessionDetailStore = [];
+
 /**
  * Set the most expensive session reference (called from main.js)
  *
@@ -206,7 +209,7 @@ export function buildDayDetail(date, sessions) {
     let subTableHTML = `
         <table class="session-subtable">
             <thead><tr>
-                <th>Time</th><th>Source</th><th>Model</th>
+                <th>Time</th><th>Title</th><th>Source</th><th>Model</th>
                 <th>Input</th><th>Output</th><th>Cache R</th><th>Cache W</th><th style="text-align:right">Cost</th>
             </tr></thead><tbody>`;
     sessions.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
@@ -214,8 +217,12 @@ export function buildDayDetail(date, sessions) {
         const mi = getModelInfo(s.model);
         const sc = sourceClass(s.source);
         const isExpensive = (s.file === mostExpensiveFile && date === mostExpensiveDate);
-        subTableHTML += `<tr${isExpensive ? ' class="expensive-session-row"' : ''}>
+        const titleText = s.title ? s.title.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : '—';
+        const sessionIdx = _sessionDetailStore.length;
+        _sessionDetailStore.push(s);
+        subTableHTML += `<tr class="session-clickable${isExpensive ? ' expensive-session-row' : ''}" onclick="showSessionDetail(${sessionIdx})">
             <td style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${s.time || '—'}</td>
+            <td class="session-title-cell" title="${titleText}">${titleText}</td>
             <td><span class="source-badge source-${sc}">${s.source}</span></td>
             <td><span class="model-badge ${mi.cls}">${mi.name}</span></td>
             <td class="token-cell">${formatNumber(s.input_tokens || 0)}</td>
@@ -243,6 +250,7 @@ export function buildDayDetail(date, sessions) {
  * @param {Array} sessions - Array of session objects to render
  */
 export function renderSessionTable(sessions) {
+    _sessionDetailStore = []; // Reset store on re-render
     const byDate = {};
     sessions.forEach(s => {
         if (!byDate[s.date]) byDate[s.date] = [];
@@ -351,11 +359,136 @@ export function renderSessionTable(sessions) {
 }
 
 /**
+ * Show the session detail modal for a given session index.
+ */
+export function showSessionDetail(idx) {
+    const s = _sessionDetailStore[idx];
+    if (!s) return;
+
+    const mi = getModelInfo(s.model);
+    const sc = sourceClass(s.source);
+    const titleText = s.title || '(untitled session)';
+    const sessionId = s.sessionId || s.file?.replace('.jsonl', '') || '—';
+    const hasSessionId = s.sessionId || (s.file && s.file.endsWith('.jsonl'));
+    const isClaudeCode = s.source === 'Claude Code';
+    const resumeCmd = `claude --resume ${sessionId}`;
+
+    let modalHTML = `
+        <div class="session-modal-header">
+            <div class="session-modal-title">${titleText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <button class="session-modal-close" onclick="closeSessionDetail()">&times;</button>
+        </div>
+        <div class="session-modal-body">
+            <div class="session-modal-meta">
+                <div class="session-meta-row">
+                    <span class="meta-label">Date</span>
+                    <span class="meta-value">${s.date} ${s.time || ''}</span>
+                </div>
+                <div class="session-meta-row">
+                    <span class="meta-label">Source</span>
+                    <span class="meta-value"><span class="source-badge source-${sc}">${s.source}</span></span>
+                </div>
+                <div class="session-meta-row">
+                    <span class="meta-label">Model</span>
+                    <span class="meta-value"><span class="model-badge ${mi.cls}">${mi.name}</span></span>
+                </div>
+                ${s.cwd ? `<div class="session-meta-row">
+                    <span class="meta-label">Project</span>
+                    <span class="meta-value meta-mono">${s.cwd.replace(/</g, '&lt;')}</span>
+                </div>` : ''}
+                <div class="session-meta-row">
+                    <span class="meta-label">Session ID</span>
+                    <span class="meta-value meta-mono">${sessionId}</span>
+                </div>
+            </div>
+            <div class="session-modal-tokens">
+                <div class="token-stat"><span class="token-stat-label">Input</span><span class="token-stat-value">${formatNumber(s.input_tokens || 0)}</span></div>
+                <div class="token-stat"><span class="token-stat-label">Output</span><span class="token-stat-value">${formatNumber(s.output_tokens || 0)}</span></div>
+                <div class="token-stat"><span class="token-stat-label">Cache Read</span><span class="token-stat-value">${formatNumber(s.cache_read || 0)}</span></div>
+                <div class="token-stat"><span class="token-stat-label">Cache Write</span><span class="token-stat-value">${formatNumber(s.cache_write || 0)}</span></div>
+                <div class="token-stat"><span class="token-stat-label">Cost</span><span class="token-stat-value cost-value ${costClass(s.cost)}">$${s.cost.toFixed(2)}</span></div>
+            </div>
+            ${s.history && s.history.length > 0 ? `
+            <div class="session-modal-history">
+                <div class="history-label">Conversation History</div>
+                <div class="history-timeline">
+                    ${s.history.map(h => `
+                        <div class="history-msg history-${h.role}">
+                            <div class="history-role">${h.role === 'user' ? 'You' : 'Claude'}</div>
+                            <div class="history-text">${h.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                        </div>`).join('')}
+                    ${s.history.length >= 15 ? '<div class="history-truncated">... conversation continues</div>' : ''}
+                </div>
+            </div>` : ''}
+            ${hasSessionId && isClaudeCode ? `
+            <div class="session-modal-resume">
+                <div class="resume-label">Resume this session</div>
+                <div class="resume-cmd-row">
+                    <code class="resume-cmd">${resumeCmd}</code>
+                    <button class="resume-copy-btn" onclick="copySessionCmd('${resumeCmd}', this)">Copy</button>
+                </div>
+                ${s.cwd ? `<div class="resume-cmd-row" style="margin-top:6px;">
+                    <code class="resume-cmd">cd ${s.cwd.replace(/'/g, "\\'")} && ${resumeCmd}</code>
+                    <button class="resume-copy-btn" onclick="copySessionCmd('cd ${s.cwd.replace(/'/g, "\\\\'")} && ${resumeCmd}', this)">Copy</button>
+                </div>` : ''}
+            </div>` : ''}
+        </div>`;
+
+    let overlay = document.getElementById('session-modal-overlay');
+    let modal = document.getElementById('session-modal');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'session-modal-overlay';
+        overlay.className = 'session-modal-overlay';
+        overlay.onclick = closeSessionDetail;
+        document.body.appendChild(overlay);
+    }
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'session-modal';
+        modal.className = 'session-modal';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = modalHTML;
+    // Trigger animation
+    requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+        modal.classList.add('visible');
+    });
+}
+
+/**
+ * Close the session detail modal.
+ */
+export function closeSessionDetail() {
+    const overlay = document.getElementById('session-modal-overlay');
+    const modal = document.getElementById('session-modal');
+    if (overlay) overlay.classList.remove('visible');
+    if (modal) modal.classList.remove('visible');
+}
+
+/**
+ * Copy a command string to clipboard and show feedback on the button.
+ */
+export function copySessionCmd(cmd, btn) {
+    navigator.clipboard.writeText(cmd).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+    });
+}
+
+/**
  * Initialize keyboard shortcuts for table interactions.
  * Shift+E toggles all day rows.
  */
 export function initKeyboardShortcuts() {
     document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSessionDetail();
+            return;
+        }
         if (e.shiftKey && e.key === 'E') {
             // Don't trigger if user is typing in an input/textarea
             const tag = document.activeElement.tagName.toLowerCase();
@@ -366,5 +499,8 @@ export function initKeyboardShortcuts() {
     });
 }
 
-// Make toggleDay available globally for onclick handlers
+// Make functions available globally for onclick handlers
 window.toggleDay = toggleDay;
+window.showSessionDetail = showSessionDetail;
+window.closeSessionDetail = closeSessionDetail;
+window.copySessionCmd = copySessionCmd;

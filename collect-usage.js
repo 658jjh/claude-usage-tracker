@@ -91,12 +91,98 @@ function makeDayEntry() {
   return { cost: 0, input_tokens: 0, output_tokens: 0, cache_read: 0, cache_write: 0, models: new Set(), times: [] };
 }
 
-function pushSessions(sessions, dayData, source, fileName) {
+/**
+ * Clean raw message text: strip XML tags, system markers, cron prefixes.
+ */
+function cleanMessageText(text) {
+  text = text.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/g, '').trim();
+  text = text.replace(/<[^>]+>/g, '').trim();
+  text = text.replace(/^\[SUGGESTION MODE:[^\]]*\]\s*/i, '').trim();
+  const cronMatch = text.match(/^\[cron:[a-f0-9-]+\s+([^\]]*)\]\s*(.*)/i);
+  if (cronMatch) {
+    text = cronMatch[1].trim() + (cronMatch[2] ? ' — ' + cronMatch[2].trim() : '');
+  }
+  return text;
+}
+
+/**
+ * Extract text content from a JSONL message entry's content field.
+ */
+function extractText(msg) {
+  if (!msg || typeof msg !== 'object') return '';
+  const content = msg.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    // Check if this is a tool_result (skip it)
+    if (content.some(b => b.type === 'tool_result')) return '';
+    const textBlock = content.find(c => c.type === 'text' && c.text && c.text.trim());
+    return textBlock ? textBlock.text : '';
+  }
+  return '';
+}
+
+/**
+ * Extract session metadata + conversation history from a JSONL file.
+ * Returns: { title, sessionId, cwd, history: [{role, text}] }
+ */
+function extractSessionMeta(filePath) {
+  const meta = { title: '', sessionId: '', cwd: '', history: [] };
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n').filter(l => l.trim());
+    let foundTitle = false;
+
+    for (const line of lines) {
+      let entry;
+      try { entry = JSON.parse(line); } catch { continue; }
+
+      // Extract sessionId and cwd from any entry that has them
+      if (!meta.sessionId && entry.sessionId) meta.sessionId = entry.sessionId;
+      if (!meta.cwd && entry.cwd) meta.cwd = entry.cwd;
+
+      // Skip non-conversation entries
+      const msg = entry.message;
+      if (!msg || typeof msg !== 'object') continue;
+      const role = msg.role;
+      if (role !== 'user' && role !== 'assistant') continue;
+
+      const rawText = extractText(msg);
+      if (!rawText) continue;
+      const text = cleanMessageText(rawText);
+      if (!text) continue;
+
+      // Set title from first user message
+      if (!foundTitle && role === 'user') {
+        meta.title = text.length > 80 ? text.substring(0, 77) + '...' : text;
+        foundTitle = true;
+      }
+
+      // Add to history (max 15 turns, 120 chars each)
+      if (meta.history.length < 15) {
+        meta.history.push({
+          role: role === 'user' ? 'user' : 'ai',
+          text: text.length > 120 ? text.substring(0, 117) + '...' : text
+        });
+      }
+    }
+  } catch {}
+  // Fallback: derive sessionId from filename
+  if (!meta.sessionId) {
+    const base = path.basename(filePath, '.jsonl');
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(base)) {
+      meta.sessionId = base;
+    }
+  }
+  return meta;
+}
+
+function pushSessions(sessions, dayData, source, fileName, meta) {
+  meta = meta || {};
   for (const [date, data] of Object.entries(dayData)) {
     if (data.cost < 0.0001) continue;
     const models = [...data.models];
     const time = data.times.length > 0 ? data.times.sort()[0] : '00:00';
-    sessions.push({
+    const entry = {
       date,
       time,
       source,
@@ -107,7 +193,12 @@ function pushSessions(sessions, dayData, source, fileName) {
       cache_read: data.cache_read,
       cache_write: data.cache_write,
       model: models[models.length - 1] || ''
-    });
+    };
+    if (meta.title) entry.title = meta.title;
+    if (meta.sessionId) entry.sessionId = meta.sessionId;
+    if (meta.cwd) entry.cwd = meta.cwd;
+    if (meta.history && meta.history.length > 0) entry.history = meta.history;
+    sessions.push(entry);
   }
 }
 
@@ -362,8 +453,10 @@ function collectOpenClaw() {
       if (seenFiles.has(file)) continue;
       seenFiles.add(file);
       try {
-        const dayData = parseOpenClawFormat(path.join(sessDir, file));
-        pushSessions(sessions, dayData, source, file);
+        const fullPath = path.join(sessDir, file);
+        const dayData = parseOpenClawFormat(fullPath);
+        const meta = extractSessionMeta(fullPath);
+        pushSessions(sessions, dayData, source, file, meta);
       } catch (e) { console.error(`  Error: ${file}: ${e.message}`); }
     }
   }
@@ -378,7 +471,8 @@ function collectClaudeCode() {
   for (const filePath of files) {
     try {
       const dayData = parseClaudeCodeFormat(filePath);
-      pushSessions(sessions, dayData, 'Claude Code', path.basename(filePath));
+      const meta = extractSessionMeta(filePath);
+      pushSessions(sessions, dayData, 'Claude Code', path.basename(filePath), meta);
     } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
   }
   return sessions;
@@ -393,7 +487,8 @@ function collectClaudeDesktop() {
   for (const filePath of files) {
     try {
       const dayData = parseClaudeCodeFormat(filePath); // Same format as Claude Code
-      pushSessions(sessions, dayData, 'Claude Desktop', path.basename(filePath));
+      const meta = extractSessionMeta(filePath);
+      pushSessions(sessions, dayData, 'Claude Desktop', path.basename(filePath), meta);
     } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
   }
   return sessions;
@@ -412,7 +507,8 @@ function collectCursor() {
     for (const filePath of files) {
       try {
         const dayData = parseClaudeCodeFormat(filePath);
-        pushSessions(sessions, dayData, 'Cursor', path.basename(filePath));
+        const meta = extractSessionMeta(filePath);
+        pushSessions(sessions, dayData, 'Cursor', path.basename(filePath), meta);
       } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
     }
   }
@@ -432,7 +528,8 @@ function collectWindsurf() {
     for (const filePath of files) {
       try {
         const dayData = parseClaudeCodeFormat(filePath);
-        pushSessions(sessions, dayData, 'Windsurf', path.basename(filePath));
+        const meta = extractSessionMeta(filePath);
+        pushSessions(sessions, dayData, 'Windsurf', path.basename(filePath), meta);
       } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
     }
   }
@@ -454,7 +551,8 @@ function collectCline() {
       try {
         // Cline uses a mix of formats — try Claude Code format first
         const dayData = parseClaudeCodeFormat(filePath);
-        pushSessions(sessions, dayData, 'Cline', path.basename(filePath));
+        const meta = extractSessionMeta(filePath);
+        pushSessions(sessions, dayData, 'Cline', path.basename(filePath), meta);
       } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
     }
   }
@@ -473,7 +571,8 @@ function collectRooCode() {
     for (const filePath of files) {
       try {
         const dayData = parseClaudeCodeFormat(filePath);
-        pushSessions(sessions, dayData, 'Roo Code', path.basename(filePath));
+        const meta = extractSessionMeta(filePath);
+        pushSessions(sessions, dayData, 'Roo Code', path.basename(filePath), meta);
       } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
     }
   }
@@ -499,7 +598,7 @@ function collectAider() {
     for (const filePath of files) {
       try {
         const dayData = parseAiderFormat(filePath);
-        pushSessions(sessions, dayData, 'Aider', path.basename(filePath));
+        pushSessions(sessions, dayData, 'Aider', path.basename(filePath), {});
       } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
     }
   }
@@ -515,7 +614,7 @@ function collectContinue() {
       if (!f.endsWith('.json')) continue;
       try {
         const dayData = parseContinueFormat(path.join(sessDir, f));
-        pushSessions(sessions, dayData, 'Continue', f);
+        pushSessions(sessions, dayData, 'Continue', f, {});
       } catch {}
     }
   } catch {}
