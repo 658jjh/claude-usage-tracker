@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="css/components/heatmap.css">
     <link rel="stylesheet" href="css/components/expensive-callout.css">
     <link rel="stylesheet" href="css/components/footer.css">
+    <link rel="stylesheet" href="css/components/reload-fab.css">
 
     <!-- Utilities -->
     <link rel="stylesheet" href="css/utilities.css">
@@ -248,6 +249,22 @@
             <span id="footer-text">claude usage dashboard</span>
         </div>
     </div>
+
+    <!-- Floating Reload Button -->
+    <button class="reload-fab" id="reload-fab" type="button" aria-label="Refresh data">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+                <linearGradient id="reloadGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#22d3ee"/>
+                    <stop offset="100%" stop-color="#a78bfa"/>
+                </linearGradient>
+            </defs>
+            <polyline points="23 4 23 10 17 10" stroke="url(#reloadGrad)"/>
+            <polyline points="1 20 1 14 7 14" stroke="url(#reloadGrad)"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke="url(#reloadGrad)"/>
+        </svg>
+        <span class="fab-tip">Refresh Data <span class="kbd">&#8984;R</span></span>
+    </button>
 
     <script type="module" src="js/main.js"></script>
 </body>

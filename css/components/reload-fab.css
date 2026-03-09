@@ -1,0 +1,125 @@
+/* Floating Reload Button (FAB) */
+.reload-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 1000;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 1px rgba(34, 211, 238, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    outline: none;
+    -webkit-app-region: no-drag;
+}
+
+.reload-fab::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.3), rgba(167, 139, 250, 0.3));
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.reload-fab:hover {
+    transform: scale(1.1);
+    box-shadow:
+        0 6px 24px rgba(0, 0, 0, 0.4),
+        0 0 24px rgba(34, 211, 238, 0.12),
+        inset 0 0 0 1px rgba(34, 211, 238, 0.25);
+}
+
+.reload-fab:hover::before {
+    opacity: 1;
+}
+
+.reload-fab:active {
+    transform: scale(0.95);
+    transition-duration: 0.1s;
+}
+
+.reload-fab svg {
+    width: 22px;
+    height: 22px;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+
+/* Spinning state while reloading */
+.reload-fab.is-reloading svg {
+    animation: fabSpin 0.7s linear infinite;
+}
+
+.reload-fab.is-reloading {
+    pointer-events: none;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.35),
+        0 0 20px rgba(34, 211, 238, 0.2),
+        inset 0 0 0 1px rgba(34, 211, 238, 0.3);
+}
+
+.reload-fab.is-reloading::before {
+    opacity: 1;
+    animation: fabGlowPulse 1s ease-in-out infinite;
+}
+
+@keyframes fabSpin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fabGlowPulse {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+}
+
+/* Tooltip */
+.reload-fab .fab-tip {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%) translateX(4px);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--border);
+}
+
+.reload-fab .fab-tip .kbd {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 1px 5px;
+    margin-left: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.reload-fab:hover .fab-tip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}

@@ -210,10 +210,36 @@ async function loadData() {
     }
 }
 
+// === Reload FAB Handler ===
+
+function initReloadButton() {
+    const fab = document.getElementById('reload-fab');
+    if (!fab) return;
+
+    fab.addEventListener('click', () => {
+        fab.classList.add('is-reloading');
+        // Fade out then trigger reload
+        document.body.style.transition = 'opacity 0.25s ease-out';
+        document.body.style.opacity = '0';
+        setTimeout(() => {
+            try {
+                window.webkit.messageHandlers.reload.postMessage('');
+            } catch (_) {
+                location.reload();
+            }
+        }, 250);
+    });
+}
+
 // === Initialize on DOM Ready ===
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadData);
-} else {
+function init() {
     loadData();
+    initReloadButton();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }
