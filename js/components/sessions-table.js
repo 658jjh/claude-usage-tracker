@@ -40,16 +40,13 @@ export function toggleDay(date) {
     if (row.classList.contains('expanded')) {
         row.classList.remove('expanded');
         detailWrapper.classList.remove('open');
-        detailWrapper.style.maxHeight = '0';
     } else {
         row.classList.add('expanded');
         detailWrapper.classList.add('open');
-        const inner = detailWrapper.querySelector('.day-detail');
-        detailWrapper.style.maxHeight = inner.scrollHeight + 40 + 'px';
 
         setTimeout(() => {
             detailWrapper.querySelectorAll('.cost-bar-fill').forEach(bar => {
-                bar.style.width = bar.dataset.width;
+                bar.style.transform = `scaleX(${parseFloat(bar.dataset.width) / 100})`;
             });
         }, 50);
     }
@@ -79,18 +76,15 @@ export function toggleAllDays() {
             if (shouldExpand && !row.classList.contains('expanded')) {
                 row.classList.add('expanded');
                 detailWrapper.classList.add('open');
-                const inner = detailWrapper.querySelector('.day-detail');
-                detailWrapper.style.maxHeight = inner.scrollHeight + 40 + 'px';
 
                 setTimeout(() => {
                     detailWrapper.querySelectorAll('.cost-bar-fill').forEach(bar => {
-                        bar.style.width = bar.dataset.width;
+                        bar.style.transform = `scaleX(${parseFloat(bar.dataset.width) / 100})`;
                     });
                 }, 50);
             } else if (!shouldExpand && row.classList.contains('expanded')) {
                 row.classList.remove('expanded');
                 detailWrapper.classList.remove('open');
-                detailWrapper.style.maxHeight = '0';
             }
         }, index * 10);
     });

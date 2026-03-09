@@ -28,7 +28,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
     white-space: nowrap;
 }
 
@@ -214,7 +214,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease;
     display: none;
 }
 

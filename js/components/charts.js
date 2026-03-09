@@ -183,9 +183,9 @@ function buildDailyChart(allSessions) {
             responsive: true,
             maintainAspectRatio: false,
             animation: {
-                duration: 900,
+                duration: 400,
                 easing: 'easeOutQuart',
-                delay: (ctx) => ctx.dataIndex * 20 + ctx.datasetIndex * 40,
+                delay: (ctx) => ctx.dataIndex * 10 + ctx.datasetIndex * 20,
             },
             interaction: {
                 mode: 'index',
@@ -371,7 +371,7 @@ function buildSourceChart(allSessions) {
             animation: {
                 animateRotate: true,
                 animateScale: true,
-                duration: 1000,
+                duration: 500,
                 easing: 'easeOutQuart',
             },
             layout: {
@@ -463,9 +463,9 @@ function buildModelChart(allSessions) {
             animation: {
                 animateRotate: true,
                 animateScale: true,
-                duration: 1000,
+                duration: 500,
                 easing: 'easeOutQuart',
-                delay: 150,
+                delay: 80,
             },
             layout: {
                 padding: { top: 0, bottom: 0, left: 0, right: 0 },

@@ -10,7 +10,8 @@
     opacity: 0;
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    contain: content;
 }
 
 /* Subtle top gradient accent line */

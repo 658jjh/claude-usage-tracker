@@ -85,11 +85,9 @@ function renderHoursView(allSessions) {
         for (let hour = 0; hour < 24; hour++) {
             const cell = byDate[date][hour];
             const level = heatmapLevel(cell.cost, maxCost);
-            const delay = (r * 12 + hour * 3);
             html += `<div class="heatmap-cell level-${level}"
                 data-date="${date}" data-hour="${hour}"
-                data-cost="${cell.cost.toFixed(2)}" data-count="${cell.count}"
-                style="animation-delay:${delay}ms"></div>`;
+                data-cost="${cell.cost.toFixed(2)}" data-count="${cell.count}"></div>`;
         }
     }
 
@@ -198,20 +196,30 @@ function renderDaysView(allSessions) {
             const entry = weeks[w].find(e => e.dayIdx === dayRow);
             if (entry) {
                 const level = heatmapLevel(entry.data.cost, maxCost);
-                const delay = (w * 5 + dayRow * 8);
                 const isToday = entry.date === formatDateStr(today);
                 cellsHTML += `<div class="heatmap-cell heatmap-days-cell${isToday ? ' is-today' : ''} level-${level}"
                     data-date="${entry.date}"
                     data-cost="${entry.data.cost.toFixed(2)}"
-                    data-count="${entry.data.count}"
-                    data-sources='${JSON.stringify(entry.data.sources)}'
-                    style="animation-delay:${delay}ms"></div>`;
+                    data-count="${entry.data.count}"></div>`;
             } else {
                 cellsHTML += `<div class="heatmap-cell heatmap-days-cell level-0 is-empty"></div>`;
             }
         }
     }
     gridEl.innerHTML = cellsHTML;
+
+    // Attach sources data as element property (avoids JSON.parse in hot path)
+    let cellIdx = 0;
+    const allCells = gridEl.querySelectorAll('.heatmap-days-cell:not(.is-empty)');
+    for (let w = 0; w < numWeeks; w++) {
+        for (let dayRow = 6; dayRow >= 0; dayRow--) {
+            const entry = weeks[w].find(e => e.dayIdx === dayRow);
+            if (entry) {
+                const cell = allCells[cellIdx++];
+                if (cell) cell._sources = entry.data.sources;
+            }
+        }
+    }
 
     setupDaysTooltip(gridEl);
     setupDaysClick(gridEl);
@@ -257,6 +265,7 @@ function setupHoursTooltip(gridEl) {
         tipHour.textContent = `${hourStr} \u2014 ${hourEndStr}`;
         tipCount.textContent = count;
         tipCost.textContent = '$' + cost;
+        resetTooltipCache();
         tooltip.classList.add('visible');
     });
 
@@ -289,15 +298,15 @@ function setupDaysTooltip(gridEl) {
         const count = parseInt(cell.dataset.count, 10);
         const cost = cell.dataset.cost;
 
-        // Build sources summary
+        // Build sources summary from element property
         let sourcesText = '';
-        try {
-            const sources = JSON.parse(cell.dataset.sources || '{}');
+        const sources = cell._sources;
+        if (sources) {
             const entries = Object.entries(sources).sort((a, b) => b[1] - a[1]);
             if (entries.length > 0) {
                 sourcesText = entries.map(([src, cnt]) => `${src}: ${cnt}`).join(', ');
             }
-        } catch { /* ignore */ }
+        }
 
         tipDay.textContent = `${dayName}, ${formatted}`;
         tipHour.textContent = count > 0
@@ -305,6 +314,7 @@ function setupDaysTooltip(gridEl) {
             : 'No activity';
         tipCount.textContent = count;
         tipCost.textContent = '$' + cost;
+        resetTooltipCache();
         tooltip.classList.add('visible');
     });
 
@@ -317,14 +327,23 @@ function setupDaysTooltip(gridEl) {
     });
 }
 
+let _tooltipW = 0, _tooltipH = 0;
 function positionTooltip(tooltip, e) {
+    // Cache dimensions — only re-read when likely stale (zero)
+    if (!_tooltipW) {
+        _tooltipW = tooltip.offsetWidth || 180;
+        _tooltipH = tooltip.offsetHeight || 100;
+    }
     const x = e.clientX + 14;
     const y = e.clientY - 12;
-    const maxX = window.innerWidth - tooltip.offsetWidth - 12;
-    const maxY = window.innerHeight - tooltip.offsetHeight - 12;
+    const maxX = window.innerWidth - _tooltipW - 12;
+    const maxY = window.innerHeight - _tooltipH - 12;
     tooltip.style.left = Math.min(x, maxX) + 'px';
     tooltip.style.top = Math.min(y, maxY) + 'px';
 }
+
+// Reset cached tooltip size when content changes
+function resetTooltipCache() { _tooltipW = 0; _tooltipH = 0; }
 
 // ─── Click to Scroll ────────────────────────────────────────
 
@@ -412,14 +431,6 @@ function setupToggle() {
         setTimeout(() => {
             outgoing.classList.remove('heatmap-view-exiting');
             incoming.classList.add('heatmap-view-active');
-
-            // Re-trigger cell animations on incoming view
-            const cells = incoming.querySelectorAll('.heatmap-cell');
-            cells.forEach(cell => {
-                cell.style.animation = 'none';
-                cell.offsetHeight; // trigger reflow
-                cell.style.animation = '';
-            });
         }, 200);
     }
 

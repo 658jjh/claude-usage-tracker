@@ -7,11 +7,14 @@
 .day-detail-wrapper {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
     opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
-.day-detail-wrapper.open { opacity: 1; }
+.day-detail-wrapper.open {
+    max-height: none;
+    opacity: 1;
+}
 
 .day-detail {
     padding: 20px 24px;
@@ -93,8 +96,9 @@
 .cost-bar-fill {
     height: 100%;
     border-radius: 2px;
-    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 0;
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cost-bar-fill.fill-openclaw { background: linear-gradient(90deg, var(--accent-amber), #f59e0b); }
@@ -142,9 +146,7 @@
 .session-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 900;
     opacity: 0;
     pointer-events: none;
@@ -203,7 +205,7 @@
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.15s;
+    transition: color 0.15s ease, border-color 0.15s ease;
 }
 .session-modal-close:hover { color: var(--text-primary); border-color: var(--text-muted); }
 
@@ -402,7 +404,7 @@
     padding: 8px 14px;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.2s;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
     flex-shrink: 0;
 }
 .resume-copy-btn:hover {

@@ -18,17 +18,11 @@ header {
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 24px rgba(34, 211, 238, 0.2);
-    animation: logoPulse 3s ease-in-out infinite;
     overflow: hidden;
 }
 .logo-mark svg {
     width: 100%;
     height: 100%;
-}
-
-@keyframes logoPulse {
-    0%, 100% { box-shadow: 0 0 24px rgba(34, 211, 238, 0.2); }
-    50% { box-shadow: 0 0 32px rgba(34, 211, 238, 0.35); }
 }
 
 header h1 {
