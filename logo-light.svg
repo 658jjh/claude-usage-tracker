@@ -6,9 +6,9 @@
     </linearGradient>
     
     <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0891b2" stop-opacity="0.08"/>
-      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.04"/>
-      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.08"/>
+      <stop offset="0%" stop-color="#0891b2" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.25"/>
     </linearGradient>
 
     <linearGradient id="bar1" x1="0" y1="1" x2="0" y2="0">
@@ -34,30 +34,30 @@
     </linearGradient>
   </defs>
 
-  <!-- White background rounded square -->
-  <rect width="512" height="512" rx="112" ry="112" fill="#ffffff"/>
+  <!-- Dark background rounded square -->
+  <rect width="512" height="512" rx="112" ry="112" fill="#0f1629"/>
   
   <!-- Subtle gradient overlay -->
-  <rect width="512" height="512" rx="112" ry="112" fill="url(#glowGrad)"/>
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#glowGrad)" opacity="0.5"/>
 
   <!-- Border ring -->
-  <rect x="3" y="3" width="506" height="506" rx="109" ry="109" fill="none" stroke="url(#bgGrad)" stroke-width="2" opacity="0.25"/>
+  <rect x="3" y="3" width="506" height="506" rx="109" ry="109" fill="none" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.4"/>
 
   <!-- Chart area background -->
-  <rect x="96" y="96" width="320" height="320" rx="24" ry="24" fill="#f8fafc" opacity="0.9"/>
+  <rect x="96" y="96" width="320" height="320" rx="24" ry="24" fill="#131b2e" opacity="0.6"/>
 
   <!-- Grid lines -->
-  <line x1="120" y1="176" x2="392" y2="176" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
-  <line x1="120" y1="236" x2="392" y2="236" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
-  <line x1="120" y1="296" x2="392" y2="296" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,6" opacity="0.6"/>
-  <line x1="120" y1="356" x2="392" y2="356" stroke="#e2e8f0" stroke-width="1" opacity="0.5"/>
+  <line x1="120" y1="176" x2="392" y2="176" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/>
+  <line x1="120" y1="236" x2="392" y2="236" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/>
+  <line x1="120" y1="296" x2="392" y2="296" stroke="#1e293b" stroke-width="0.75" stroke-dasharray="3,5" opacity="0.4"/>
+  <line x1="120" y1="356" x2="392" y2="356" stroke="#253147" stroke-width="1.5" opacity="0.6"/>
 
   <!-- Bars -->
   <g>
-    <rect x="136" y="200" width="44" height="156" rx="8" ry="8" fill="url(#bar1)" opacity="0.85"/>
-    <rect x="202" y="140" width="44" height="216" rx="8" ry="8" fill="url(#bar2)" opacity="0.85"/>
-    <rect x="268" y="176" width="44" height="180" rx="8" ry="8" fill="url(#bar3)" opacity="0.85"/>
-    <rect x="334" y="116" width="44" height="240" rx="8" ry="8" fill="url(#bar4)" opacity="0.85"/>
+    <rect x="136" y="200" width="44" height="156" rx="8" ry="8" fill="url(#bar1)" opacity="0.92"/>
+    <rect x="202" y="140" width="44" height="216" rx="8" ry="8" fill="url(#bar2)" opacity="0.92"/>
+    <rect x="268" y="176" width="44" height="180" rx="8" ry="8" fill="url(#bar3)" opacity="0.92"/>
+    <rect x="334" y="116" width="44" height="240" rx="8" ry="8" fill="url(#bar4)" opacity="0.92"/>
   </g>
 
   <!-- Trend line -->
@@ -69,12 +69,12 @@
       stroke-width="3.5" 
       stroke-linecap="round" 
       stroke-linejoin="round"
-      opacity="0.8"
+      opacity="0.95"
     />
-    <circle cx="158" cy="188" r="5" fill="#d97706"/>
-    <circle cx="224" cy="148" r="5" fill="#c2410c"/>
-    <circle cx="290" cy="168" r="5" fill="#be185d"/>
-    <circle cx="356" cy="120" r="5" fill="#e11d48"/>
+    <circle cx="158" cy="188" r="4.5" fill="#fbbf24"/>
+    <circle cx="224" cy="148" r="4.5" fill="#f59e0b"/>
+    <circle cx="290" cy="168" r="4.5" fill="#e879a0"/>
+    <circle cx="356" cy="120" r="4.5" fill="#fb7185"/>
   </g>
 
   <!-- Dollar sign accent -->

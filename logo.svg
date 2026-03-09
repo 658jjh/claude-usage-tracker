@@ -73,7 +73,7 @@
 
   <!-- Background rounded square -->
   <rect width="512" height="512" rx="108" ry="108" fill="#0f1629"/>
-  
+
   <!-- Subtle gradient overlay for depth -->
   <rect width="512" height="512" rx="108" ry="108" fill="url(#glowGrad)" opacity="0.5"/>
 
