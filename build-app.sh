@@ -147,11 +147,32 @@ if [ -f "$SVG" ]; then
     ICONSET="$RESOURCES/AppIcon.iconset"
     mkdir -p "$ICONSET"
 
-    # Render SVG at each required size via qlmanage
-    for size in 16 32 64 128 256 512 1024; do
-        qlmanage -t -s "$size" -o "$ICONSET" "$SVG" 2>/dev/null
-        mv "$ICONSET/logo.svg.png" "$ICONSET/icon_${size}x${size}.png" 2>/dev/null
-    done
+    # Render SVG at each required size using Swift (preserves transparency)
+    swift - "$SVG" "$ICONSET" << 'SWIFT'
+    import Cocoa
+    let args = CommandLine.arguments
+    let svgPath = args[1]
+    let outDir = args[2]
+    let sizes = [16, 32, 64, 128, 256, 512, 1024]
+    let svgData = try! Data(contentsOf: URL(fileURLWithPath: svgPath))
+    let svgImage = NSImage(data: svgData)!
+    for size in sizes {
+        let s = CGFloat(size)
+        let rep = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+            isPlanar: false, colorSpaceName: .deviceRGB,
+            bytesPerRow: 0, bitsPerPixel: 0)!
+        rep.size = NSSize(width: s, height: s)
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        svgImage.draw(in: NSRect(x: 0, y: 0, width: s, height: s))
+        NSGraphicsContext.restoreGraphicsState()
+        let png = rep.representation(using: .png, properties: [:])!
+        let outURL = URL(fileURLWithPath: outDir).appendingPathComponent("icon_\(size)x\(size).png")
+        try! png.write(to: outURL)
+    }
+SWIFT
 
     # Map to Apple's expected @2x naming
     cd "$ICONSET"
