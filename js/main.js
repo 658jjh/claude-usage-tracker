@@ -36,6 +36,12 @@ import {
     toggleAllDays,
     initKeyboardShortcuts
 } from './components/sessions-table.js';
+import {
+    exportData,
+    importData,
+    mergeSessions,
+    recalcSummary
+} from './components/data-transfer.js';
 
 // === Global State ===
 
@@ -231,11 +237,93 @@ function initReloadButton() {
     });
 }
 
+// === Export / Import Handlers ===
+
+function initDataTransfer() {
+    const exportBtn = document.getElementById('dt-export-btn');
+    const importBtn = document.getElementById('dt-import-btn');
+    if (!exportBtn || !importBtn) return;
+
+    exportBtn.addEventListener('click', () => {
+        const summary = window.__SUMMARY__;
+        if (!summary || allSessionsData.length === 0) return;
+        exportData(summary, allSessionsData);
+    });
+
+    importBtn.addEventListener('click', async () => {
+        const result = await importData();
+        if (!result) return;
+
+        // Merge imported sessions with current data
+        const merged = mergeSessions(allSessionsData, result.sessions);
+        const newSummary = recalcSummary(merged);
+
+        // Update global state
+        allSessionsData = merged;
+        totalSessionCount = merged.length;
+
+        // Show import banner
+        showImportBanner(result.sessions.length, merged.length);
+
+        // Re-render with merged data
+        reRenderDashboard(newSummary, merged);
+    });
+}
+
+function showImportBanner(importedCount, totalCount) {
+    // Remove existing banner
+    const old = document.getElementById('dt-import-banner');
+    if (old) old.remove();
+
+    const banner = document.createElement('div');
+    banner.id = 'dt-import-banner';
+    banner.className = 'dt-import-banner';
+    banner.innerHTML = `
+        <span class="dt-import-banner-text">
+            Viewing merged data — <strong>${totalCount}</strong> total sessions (imported ${importedCount})
+        </span>
+        <button class="dt-import-dismiss" onclick="location.reload()">Dismiss &amp; Reload</button>
+    `;
+
+    const container = document.querySelector('.container');
+    const statsGrid = document.querySelector('.stats-grid');
+    container.insertBefore(banner, statsGrid);
+}
+
+function reRenderDashboard(summary, sessions) {
+    // Update stat card targets
+    document.getElementById('today-cost').textContent = '$' + summary.today_cost.toFixed(2);
+    document.getElementById('month-cost').textContent = '$' + summary.month_cost.toFixed(2);
+    document.getElementById('total-cost').textContent = '$' + summary.totals.grand_total.toFixed(2);
+    document.getElementById('session-count').textContent = sessions.length.toString();
+
+    // Recalc week cost
+    const thisWeekStart = getWeekStart(summary.today);
+    const thisWeekEnd = getWeekEnd(thisWeekStart);
+    const weekCost = sessions
+        .filter(s => s.date >= thisWeekStart && s.date <= thisWeekEnd)
+        .reduce((sum, s) => sum + s.cost, 0);
+    document.getElementById('week-cost').textContent = '$' + weekCost.toFixed(2);
+
+    // Re-render components
+    initFilterDropdowns(sessions);
+    renderSessionTable(sessions);
+    updateFilterCount(sessions.length, totalSessionCount);
+    initCharts(sessions);
+    initHeatmap(sessions);
+
+    // Re-bind filter callback
+    const cb = () => applyFilters(allSessionsData, totalSessionCount, renderSessionTable);
+    window._applyFiltersCallback = cb;
+    setupFilterListeners(cb);
+}
+
 // === Initialize on DOM Ready ===
 
 function init() {
     loadData();
     initReloadButton();
+    initDataTransfer();
 }
 
 if (document.readyState === 'loading') {

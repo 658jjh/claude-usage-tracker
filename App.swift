@@ -130,9 +130,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
         config.preferences = prefs
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
 
-        // Register message handler for reload button
+        // Register message handlers
         let contentController = WKUserContentController()
         contentController.add(self, name: "reload")
+        contentController.add(self, name: "exportData")
+        contentController.add(self, name: "importData")
         config.userContentController = contentController
 
         webView = WKWebView(frame: window.contentView!.bounds, configuration: config)
@@ -153,8 +155,69 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
     // MARK: - WKScriptMessageHandler
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "reload" {
+        switch message.name {
+        case "reload":
             reloadDashboard()
+        case "exportData":
+            handleExport(message.body as? String ?? "")
+        case "importData":
+            handleImport()
+        default:
+            break
+        }
+    }
+
+    // MARK: - Export (NSSavePanel)
+
+    func handleExport(_ jsonString: String) {
+        let panel = NSSavePanel()
+        let dateStr = ISO8601DateFormatter().string(from: Date()).prefix(10)
+        panel.nameFieldStringValue = "claude-usage-\(dateStr).json"
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.title = "Export Usage Data"
+
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            do {
+                try jsonString.write(to: url, atomically: true, encoding: .utf8)
+                let count = (try? JSONSerialization.jsonObject(with: Data(jsonString.utf8)) as? [String: Any])?["sessions"]
+                let sessionCount = (count as? [[String: Any]])?.count ?? 0
+                self?.webView.evaluateJavaScript("window._showExportToast('Exported \(sessionCount) sessions to file')")
+            } catch {
+                self?.webView.evaluateJavaScript("window._showExportToast('Export failed: \(error.localizedDescription)', true)")
+            }
+        }
+    }
+
+    // MARK: - Import (NSOpenPanel)
+
+    func handleImport() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.title = "Import Usage Data"
+        panel.message = "Select a claude-usage JSON file exported from another device"
+
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard response == .OK, let url = panel.url else {
+                self?.webView.evaluateJavaScript("if(window._importDataResolver) window._importDataResolver(null)")
+                return
+            }
+            do {
+                let jsonString = try String(contentsOf: url, encoding: .utf8)
+                // Escape for JS string literal
+                let escaped = jsonString
+                    .replacingOccurrences(of: "\\", with: "\\\\")
+                    .replacingOccurrences(of: "'", with: "\\'")
+                    .replacingOccurrences(of: "\n", with: "\\n")
+                    .replacingOccurrences(of: "\r", with: "\\r")
+                self?.webView.evaluateJavaScript("if(window._importDataResolver) window._importDataResolver('\(escaped)')")
+            } catch {
+                self?.webView.evaluateJavaScript("window._showExportToast('Failed to read file', true)")
+                self?.webView.evaluateJavaScript("if(window._importDataResolver) window._importDataResolver(null)")
+            }
         }
     }
 

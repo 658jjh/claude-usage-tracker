@@ -1,0 +1,136 @@
+/* ── Data Transfer (Export / Import) ─────────── */
+
+.dt-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.dt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    white-space: nowrap;
+    -webkit-app-region: no-drag;
+}
+
+.dt-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.dt-btn:hover {
+    border-color: var(--accent-cyan);
+    color: var(--text-primary);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.08);
+}
+
+.dt-btn:active {
+    transform: scale(0.97);
+    transition-duration: 0.05s;
+}
+
+.dt-btn-export:hover {
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.1);
+}
+
+.dt-btn-import:hover {
+    border-color: var(--accent-violet);
+    color: var(--accent-violet);
+    box-shadow: 0 0 12px rgba(167, 139, 250, 0.1);
+}
+
+/* ── Toast ──────────────────────────────────── */
+
+.dt-toast {
+    position: fixed;
+    bottom: 90px;
+    right: 28px;
+    z-index: 1100;
+    padding: 10px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--accent-emerald);
+    border-radius: var(--radius-sm);
+    color: var(--accent-emerald);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(52, 211, 153, 0.08);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.dt-toast-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dt-toast-error {
+    border-color: var(--accent-rose);
+    color: var(--accent-rose);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(251, 113, 133, 0.08);
+}
+
+/* ── Import banner ──────────────────────────── */
+
+.dt-import-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    background: var(--accent-violet-dim);
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    border-radius: var(--radius-sm);
+    animation: fadeSlideUp 0.3s ease forwards;
+}
+
+.dt-import-banner-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent-violet);
+}
+
+.dt-import-banner-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.dt-import-dismiss {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--accent-violet);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.dt-import-dismiss:hover {
+    background: rgba(167, 139, 250, 0.12);
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

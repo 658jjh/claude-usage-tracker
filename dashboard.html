@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="css/components/expensive-callout.css">
     <link rel="stylesheet" href="css/components/footer.css">
     <link rel="stylesheet" href="css/components/reload-fab.css">
+    <link rel="stylesheet" href="css/components/data-transfer.css">
 
     <!-- Utilities -->
     <link rel="stylesheet" href="css/utilities.css">
@@ -43,6 +44,16 @@
             </div>
             <div class="header-meta">
                 <span class="updated"><span class="status-dot"></span>Last sync: <span id="last-updated">—</span></span>
+                <div class="dt-actions">
+                    <button class="dt-btn dt-btn-export" id="dt-export-btn" type="button" title="Export data as JSON">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Export
+                    </button>
+                    <button class="dt-btn dt-btn-import" id="dt-import-btn" type="button" title="Import data from another device">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Import
+                    </button>
+                </div>
             </div>
         </header>
 
