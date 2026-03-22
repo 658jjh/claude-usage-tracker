@@ -56,39 +56,38 @@ No cloud. No telemetry. Everything stays on your machine.
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Download (Recommended)
 
-- **Node.js** (v16 or later)
-- **A web browser** (Chrome, Firefox, Safari, etc.)
-- **Python 3** *(optional)* — for a local HTTP server, needed because the dashboard uses ES6 modules
+**Latest Release: v2.0.0**
 
-### Usage
+| Platform | Download |
+|----------|----------|
+| macOS (Apple Silicon) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.0.0/Claude-Usage-Tracker-macOS-AppleSilicon.zip) |
+| macOS (Intel) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.0.0/Claude-Usage-Tracker-macOS-Intel.zip) |
+
+> Requires **Node.js** (v16+) and **macOS 12.0+**
+
+Unzip, drag **Claude Usage Dashboard.app** to Applications, and double-click to launch.
+
+[View all releases →](https://github.com/658jjh/claude-usage-tracker/releases)
+
+### Build from Source
 
 ```bash
-# 1. Collect usage data from all detected tools
+git clone https://github.com/658jjh/claude-usage-tracker.git
+cd claude-usage-tracker
+./build-app.sh
+```
+
+Then double-click **Claude Usage Dashboard.app** — it collects fresh data and renders everything in a native window.
+
+### Browser Mode (Any OS)
+
+```bash
 node collect-usage.js
-
-# 2. Start a local server (ES6 modules require this)
 python3 -m http.server 8765
-
-# 3. Open the dashboard in your browser
 open http://localhost:8765/dashboard.html
 ```
-
-The collector will scan all known tool directories, parse session data, compute costs, and generate `data/data.js`. The dashboard reads this file and renders everything client-side.
-
-### macOS App (One-Click Launch)
-
-```bash
-# Build the standalone app
-chmod +x build-app.sh
-./build-app.sh
-
-# Then just double-click "Claude Usage Dashboard.app"
-# It collects fresh data and opens the dashboard automatically
-```
-
-The `.app` bundle includes an embedded HTTP server, runs `collect-usage.js` on launch, and opens the dashboard in your default browser — all with a single double-click.
 
 ---
 
