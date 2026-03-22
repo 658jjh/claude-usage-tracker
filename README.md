@@ -50,7 +50,25 @@ No cloud. No telemetry. Everything stays on your machine.
 
 ## 📸 Screenshots
 
-> 📷 Screenshots coming soon.
+<p align="center">
+  <img src="screenshots/dashboard-overview.png" alt="Dashboard Overview" width="800" />
+</p>
+<p align="center"><em>Dashboard — stats, daily spend chart, source & model breakdowns</em></p>
+
+<p align="center">
+  <img src="screenshots/heatmap.png" alt="Peak Hours Heatmap" width="800" />
+</p>
+<p align="center"><em>Peak Hours heatmap & most expensive session callout</em></p>
+
+<p align="center">
+  <img src="screenshots/session-log.png" alt="Session Log" width="800" />
+</p>
+<p align="center"><em>Session log with filters, expandable day rows, and per-session costs</em></p>
+
+<p align="center">
+  <img src="screenshots/session-detail.png" alt="Session Detail" width="500" />
+</p>
+<p align="center"><em>Session detail panel — token breakdown, conversation history, resume command</em></p>
 
 ---
 
