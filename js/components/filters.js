@@ -156,7 +156,12 @@ export function filterSessions(sessions, filters) {
  */
 export function applyFilters(allSessionsData, totalSessionCount, renderCallback) {
     const filters = getActiveFilters();
-    const filtered = filterSessions(allSessionsData, filters);
+    const hasAnyFilter = filters.sources.length > 0
+        || filters.models.length > 0
+        || filters.dateFrom !== null
+        || filters.dateTo !== null
+        || filters.minCost !== null;
+    const filtered = hasAnyFilter ? filterSessions(allSessionsData, filters) : allSessionsData;
 
     // Re-render the table with filtered sessions
     renderCallback(filtered);
@@ -171,12 +176,6 @@ export function applyFilters(allSessionsData, totalSessionCount, renderCallback)
     const modelBtn = document.getElementById('model-filter-btn');
     modelBtn.classList.toggle('active', filters.models.length > 0);
 
-    // Show/hide clear button
-    const hasAnyFilter = filters.sources.length > 0
-        || filters.models.length > 0
-        || filters.dateFrom !== null
-        || filters.dateTo !== null
-        || filters.minCost !== null;
     document.getElementById('filter-clear-btn').classList.toggle('visible', hasAnyFilter);
 
     // Render chips
