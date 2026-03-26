@@ -14,8 +14,18 @@ import { costClass, sourceClass } from '../utils/class-utils.js';
 let mostExpensiveFile = null;
 let mostExpensiveDate = null;
 
-// Store session objects for detail modal lookup
 let _sessionDetailStore = [];
+const _builtDays = new Set();
+let _daySessionsMap = {};
+
+export function resetSessionStore() {
+    _sessionDetailStore = [];
+}
+
+export function pushToSessionStore(session) {
+    _sessionDetailStore.push(session);
+    return _sessionDetailStore.length - 1;
+}
 
 /**
  * Set the most expensive session reference (called from main.js)
@@ -41,6 +51,11 @@ export function toggleDay(date) {
         row.classList.remove('expanded');
         detailWrapper.classList.remove('open');
     } else {
+        if (!_builtDays.has(date) && _daySessionsMap[date]) {
+            detailWrapper.innerHTML = buildDayDetail(date, _daySessionsMap[date]);
+            _builtDays.add(date);
+        }
+
         row.classList.add('expanded');
         detailWrapper.classList.add('open');
 
@@ -74,6 +89,11 @@ export function toggleAllDays() {
 
         setTimeout(() => {
             if (shouldExpand && !row.classList.contains('expanded')) {
+                if (!_builtDays.has(date) && _daySessionsMap[date]) {
+                    detailWrapper.innerHTML = buildDayDetail(date, _daySessionsMap[date]);
+                    _builtDays.add(date);
+                }
+
                 row.classList.add('expanded');
                 detailWrapper.classList.add('open');
 
@@ -125,11 +145,14 @@ export function updateTotalsRow(sessions) {
     }
 
     const totalSessions = sessions.length;
-    const totalInput = sessions.reduce((sum, s) => sum + (s.input_tokens || 0), 0);
-    const totalOutput = sessions.reduce((sum, s) => sum + (s.output_tokens || 0), 0);
-    const totalCacheRead = sessions.reduce((sum, s) => sum + (s.cache_read || 0), 0);
-    const totalCacheWrite = sessions.reduce((sum, s) => sum + (s.cache_write || 0), 0);
-    const totalCost = sessions.reduce((sum, s) => sum + s.cost, 0);
+    let totalInput = 0, totalOutput = 0, totalCacheRead = 0, totalCacheWrite = 0, totalCost = 0;
+    for (const s of sessions) {
+        totalInput += s.input_tokens || 0;
+        totalOutput += s.output_tokens || 0;
+        totalCacheRead += s.cache_read || 0;
+        totalCacheWrite += s.cache_write || 0;
+        totalCost += s.cost;
+    }
 
     tfoot.innerHTML = `<tr>
         <td>TOTAL</td>
@@ -212,8 +235,7 @@ export function buildDayDetail(date, sessions) {
         const sc = sourceClass(s.source);
         const isExpensive = (s.file === mostExpensiveFile && date === mostExpensiveDate);
         const titleText = s.title ? s.title.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : '—';
-        const sessionIdx = _sessionDetailStore.length;
-        _sessionDetailStore.push(s);
+        const sessionIdx = pushToSessionStore(s);
         subTableHTML += `<tr class="session-clickable${isExpensive ? ' expensive-session-row' : ''}" onclick="showSessionDetail(${sessionIdx})">
             <td style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;">${s.time || '—'}</td>
             <td class="session-title-cell" title="${titleText}">${titleText}</td>
@@ -244,12 +266,16 @@ export function buildDayDetail(date, sessions) {
  * @param {Array} sessions - Array of session objects to render
  */
 export function renderSessionTable(sessions) {
-    _sessionDetailStore = []; // Reset store on re-render
+    resetSessionStore();
+    _builtDays.clear();
+
     const byDate = {};
     sessions.forEach(s => {
         if (!byDate[s.date]) byDate[s.date] = [];
         byDate[s.date].push(s);
     });
+    _daySessionsMap = byDate;
+
     const sortedDates = Object.keys(byDate).sort().reverse();
 
     const tbody = document.getElementById('sessions-body');
@@ -286,12 +312,17 @@ export function renderSessionTable(sessions) {
         // Emit day rows for this week
         for (const date of weekDates) {
             const daySessions = byDate[date];
-            const dayCost = daySessions.reduce((s, x) => s + x.cost, 0);
-            const dayInput = daySessions.reduce((s, x) => s + (x.input_tokens || 0), 0);
-            const dayOutput = daySessions.reduce((s, x) => s + (x.output_tokens || 0), 0);
-            const dayCacheRead = daySessions.reduce((s, x) => s + (x.cache_read || 0), 0);
-            const dayCacheWrite = daySessions.reduce((s, x) => s + (x.cache_write || 0), 0);
-            const models = [...new Set(daySessions.map(x => x.model).filter(Boolean))];
+            let dayCost = 0, dayInput = 0, dayOutput = 0, dayCacheRead = 0, dayCacheWrite = 0;
+            const modelSet = new Set();
+            for (const x of daySessions) {
+                dayCost += x.cost;
+                dayInput += x.input_tokens || 0;
+                dayOutput += x.output_tokens || 0;
+                dayCacheRead += x.cache_read || 0;
+                dayCacheWrite += x.cache_write || 0;
+                if (x.model) modelSet.add(x.model);
+            }
+            const models = [...modelSet];
             const modelBadges = models.map(m => {
                 const mi = getModelInfo(m);
                 return `<span class="model-badge ${mi.cls}">${mi.name}</span>`;
@@ -320,9 +351,7 @@ export function renderSessionTable(sessions) {
             </tr>`;
 
             html += `<tr class="day-detail-row"><td colspan="8">
-                <div class="day-detail-wrapper" id="detail-wrapper-${date}">
-                    ${buildDayDetail(date, daySessions)}
-                </div>
+                <div class="day-detail-wrapper" id="detail-wrapper-${date}"></div>
             </td></tr>`;
         }
 
@@ -477,18 +506,18 @@ export function copySessionCmd(cmd, btn) {
  * Initialize keyboard shortcuts for table interactions.
  * Shift+E toggles all day rows.
  */
-export function initKeyboardShortcuts() {
+export function initKeyboardShortcuts(toggleAllFn) {
+    const toggleAll = toggleAllFn || toggleAllDays;
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeSessionDetail();
             return;
         }
         if (e.shiftKey && e.key === 'E') {
-            // Don't trigger if user is typing in an input/textarea
             const tag = document.activeElement.tagName.toLowerCase();
             if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
             e.preventDefault();
-            toggleAllDays();
+            toggleAll();
         }
     });
 }
