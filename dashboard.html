@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/components/detail-panel.css">
     <link rel="stylesheet" href="css/components/badges.css">
     <link rel="stylesheet" href="css/components/heatmap.css">
+    <link rel="stylesheet" href="css/components/projects-table.css">
     <link rel="stylesheet" href="css/components/expensive-callout.css">
     <link rel="stylesheet" href="css/components/footer.css">
     <link rel="stylesheet" href="css/components/reload-fab.css">
@@ -183,6 +184,11 @@
         <div class="sessions-section">
             <div class="sessions-header">
                 <h3>Session Log</h3>
+                <div class="view-toggle" id="sessions-view-toggle">
+                    <div class="view-toggle-slider"></div>
+                    <button class="view-toggle-btn active" data-view="timeline">Timeline</button>
+                    <button class="view-toggle-btn" data-view="projects">Projects</button>
+                </div>
                 <div class="sessions-header-right">
                     <span class="hint">click a row to expand</span>
                     <button class="toggle-all-btn" id="toggle-all-btn" onclick="toggleAllDays()" title="Expand or collapse all date rows (Shift+E)">
@@ -235,7 +241,7 @@
             </div>
             <div class="sessions-table-wrap">
                 <table>
-                    <thead>
+                    <thead id="sessions-thead">
                         <tr>
                             <th>Date</th>
                             <th>Sessions</th>

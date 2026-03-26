@@ -1,0 +1,139 @@
+/* ─── Session View Toggle ─────────────────────────────── */
+
+.view-toggle {
+    position: relative;
+    display: flex;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(30, 41, 59, 0.6);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 0;
+}
+
+.view-toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(96, 165, 250, 0.2));
+    border: 1px solid rgba(34, 211, 238, 0.2);
+    border-radius: 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+}
+
+.view-toggle-btn {
+    position: relative;
+    z-index: 1;
+    background: none;
+    border: none;
+    padding: 6px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.25s ease;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.view-toggle-btn:hover {
+    color: var(--text-secondary);
+}
+
+.view-toggle-btn.active {
+    color: var(--accent-cyan);
+}
+
+/* ─── Project Rows ────────────────────────────────────── */
+
+.project-row {
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.project-row:hover {
+    background: rgba(34, 211, 238, 0.03);
+}
+
+.project-row td:first-child {
+    position: relative;
+    padding-left: 36px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.project-row .chevron {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+
+.project-row.expanded .chevron {
+    transform: translateY(-50%) rotate(90deg);
+    color: var(--accent-cyan);
+}
+
+.project-row.expanded {
+    background: rgba(34, 211, 238, 0.04);
+}
+
+.project-icon {
+    margin-right: 6px;
+    font-size: 0.85rem;
+}
+
+.project-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.project-meta {
+    margin-left: 8px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    vertical-align: middle;
+}
+
+/* ─── Project Detail (Expand) ─────────────────────────── */
+
+.project-detail-row td {
+    padding: 0 !important;
+    border-bottom: 1px solid var(--border);
+}
+
+.project-detail-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.project-detail-wrapper.open {
+    max-height: none;
+    opacity: 1;
+}
+
+.project-detail {
+    padding: 16px 24px 20px;
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--border);
+}
+
+/* Reuse session-subtable styles from detail-panel.css — no duplication needed.
+   The .session-subtable, .session-clickable, .session-title-cell classes
+   are already defined globally. */

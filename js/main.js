@@ -37,6 +37,10 @@ import {
     initKeyboardShortcuts
 } from './components/sessions-table.js';
 import {
+    renderProjectsTable,
+    toggleAllProjects
+} from './components/projects-table.js';
+import {
     exportData,
     importData,
     mergeSessions,
@@ -47,13 +51,40 @@ import {
 
 let allSessionsData = [];
 let totalSessionCount = 0;
+let currentSessionView = 'timeline';
 
 // === Expose Functions to Window (for onclick handlers) ===
 
 // toggleDay and filter removal functions are already exposed by their respective modules
 // We just need to expose toggleAllDays and set up the filter callback
 window.toggleAllDays = toggleAllDays;
+window.toggleAllProjects = toggleAllProjects;
 window.clearDayFilter = clearDayFilter;
+
+function getCurrentRenderer() {
+    return currentSessionView === 'projects' ? renderProjectsTable : renderSessionTable;
+}
+
+function applyCurrentFilters() {
+    applyFilters(allSessionsData, totalSessionCount, getCurrentRenderer());
+}
+
+function toggleAllForCurrentView() {
+    if (currentSessionView === 'projects') {
+        toggleAllProjects();
+    } else {
+        toggleAllDays();
+    }
+}
+
+function updateTableHeader(view) {
+    const thead = document.getElementById('sessions-thead');
+    if (!thead) return;
+    const cells = thead.querySelectorAll('th');
+    if (cells.length < 2) return;
+    cells[0].textContent = view === 'projects' ? 'Project' : 'Date';
+    cells[1].textContent = view === 'projects' ? 'Sources' : 'Sessions';
+}
 
 // === Main Data Loading Function ===
 
@@ -195,19 +226,14 @@ async function loadData() {
         initCounterAnimations();
 
         // === Setup Filter Listeners ===
-        // Create callback that has access to global state
-        const applyFiltersCallback = () => {
-            applyFilters(allSessionsData, totalSessionCount, renderSessionTable);
-        };
-
-        // Store callback globally so filter removal functions can use it
-        window._applyFiltersCallback = applyFiltersCallback;
-
-        // Setup listeners with the callback
-        setupFilterListeners(applyFiltersCallback);
+        window._applyFiltersCallback = applyCurrentFilters;
+        setupFilterListeners(applyCurrentFilters);
 
         // === Initialize Keyboard Shortcuts ===
-        initKeyboardShortcuts();
+        initKeyboardShortcuts(toggleAllForCurrentView);
+
+        // === Setup Session View Toggle ===
+        setupSessionViewToggle();
 
     } catch (error) {
         console.error('Error loading data:', error);
@@ -307,15 +333,56 @@ function reRenderDashboard(summary, sessions) {
 
     // Re-render components
     initFilterDropdowns(sessions);
-    renderSessionTable(sessions);
+    getCurrentRenderer()(sessions);
     updateFilterCount(sessions.length, totalSessionCount);
     initCharts(sessions);
     initHeatmap(sessions);
 
     // Re-bind filter callback
-    const cb = () => applyFilters(allSessionsData, totalSessionCount, renderSessionTable);
-    window._applyFiltersCallback = cb;
-    setupFilterListeners(cb);
+    window._applyFiltersCallback = applyCurrentFilters;
+    setupFilterListeners(applyCurrentFilters);
+}
+
+// === Session View Toggle ===
+
+function setupSessionViewToggle() {
+    const toggle = document.getElementById('sessions-view-toggle');
+    if (!toggle) return;
+
+    const buttons = toggle.querySelectorAll('.view-toggle-btn');
+    const slider = toggle.querySelector('.view-toggle-slider');
+    const toggleAllBtn = document.getElementById('toggle-all-btn');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const view = btn.dataset.view;
+            if (view === currentSessionView) return;
+
+            // Update active button
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Slide the slider
+            if (view === 'projects') {
+                slider.style.transform = 'translateX(100%)';
+            } else {
+                slider.style.transform = 'translateX(0)';
+            }
+
+            // Update state
+            currentSessionView = view;
+
+            // Update table header
+            updateTableHeader(view);
+
+            // Update Expand All button onclick
+            if (toggleAllBtn) {
+                toggleAllBtn.onclick = view === 'projects' ? toggleAllProjects : toggleAllDays;
+            }
+
+            applyCurrentFilters();
+        });
+    });
 }
 
 // === Initialize on DOM Ready ===
