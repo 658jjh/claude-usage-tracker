@@ -37,6 +37,7 @@ No cloud. No telemetry. Everything stays on your machine.
 
 | **Heatmaps** | Two views — Peak Hours (day × hour grid) and Peak Days (GitHub-style calendar) |
 | **Session Log** | Expandable day-by-day session details with color-coded source cards |
+| **Projects View** | Group sessions by working directory to see per-project cost breakdown |
 | **Filtering** | Multi-criteria filtering (source, model, date range, min cost) with visual chips |
 | **Monthly Projections** | Projected monthly cost based on current spending pace |
 | **Yesterday Delta** | Compare today's spending vs yesterday at a glance |
@@ -66,6 +67,11 @@ No cloud. No telemetry. Everything stays on your machine.
 <p align="center"><em>Session log with filters, expandable day rows, and per-session costs</em></p>
 
 <p align="center">
+  <img src="screenshots/projects-view.png" alt="Projects View" width="800" />
+</p>
+<p align="center"><em>Projects view — see cost breakdown grouped by working directory</em></p>
+
+<p align="center">
   <img src="screenshots/session-detail.png" alt="Session Detail" width="500" />
 </p>
 <p align="center"><em>Session detail panel — token breakdown, conversation history, resume command</em></p>
@@ -76,12 +82,12 @@ No cloud. No telemetry. Everything stays on your machine.
 
 ### Download (Recommended)
 
-**Latest Release: v2.0.0**
+**Latest Release: v2.1.0**
 
 | Platform | Download |
 |----------|----------|
-| macOS (Apple Silicon) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.0.0/Claude-Usage-Tracker-macOS-AppleSilicon.zip) |
-| macOS (Intel) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.0.0/Claude-Usage-Tracker-macOS-Intel.zip) |
+| macOS (Apple Silicon) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.1.0/Claude-Usage-Tracker-macOS-AppleSilicon.zip) |
+| macOS (Intel) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.1.0/Claude-Usage-Tracker-macOS-Intel.zip) |
 
 > Requires **Node.js** (v16+) and **macOS 12.0+**
 
