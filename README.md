@@ -82,12 +82,12 @@ No cloud. No telemetry. Everything stays on your machine.
 
 ### Download (Recommended)
 
-**Latest Release: v2.1.0**
+**Latest Release: v2.2.0**
 
 | Platform | Download |
 |----------|----------|
-| macOS (Apple Silicon) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.1.0/Claude-Usage-Tracker-macOS-AppleSilicon.zip) |
-| macOS (Intel) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.1.0/Claude-Usage-Tracker-macOS-Intel.zip) |
+| macOS (Apple Silicon) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.2.0/Claude-Usage-Tracker-macOS-AppleSilicon.zip) |
+| macOS (Intel) | [GitHub](https://github.com/658jjh/claude-usage-tracker/releases/download/v2.2.0/Claude-Usage-Tracker-macOS-Intel.zip) |
 
 > Requires **Node.js** (v16+) and **macOS 12.0+**
 
