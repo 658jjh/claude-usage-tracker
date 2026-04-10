@@ -5,6 +5,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D16-green.svg)
+![Downloads](https://img.shields.io/github/downloads/658jjh/claude-usage-tracker/total?label=downloads&color=brightgreen)
 
 ## Overview
 
