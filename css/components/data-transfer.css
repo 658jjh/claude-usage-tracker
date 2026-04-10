@@ -114,21 +114,6 @@
     font-weight: 600;
 }
 
-.dt-import-dismiss {
-    padding: 4px 10px;
-    background: transparent;
-    border: 1px solid rgba(167, 139, 250, 0.3);
-    border-radius: var(--radius-sm);
-    color: var(--accent-violet);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.dt-import-dismiss:hover {
-    background: rgba(167, 139, 250, 0.12);
-}
 
 @keyframes fadeSlideUp {
     from { opacity: 0; transform: translateY(8px); }
