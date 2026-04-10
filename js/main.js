@@ -288,6 +288,13 @@ function initDataTransfer() {
         allSessionsData = merged;
         totalSessionCount = merged.length;
 
+        // Persist merged sessions to cache so it survives app restart
+        try {
+            window.webkit.messageHandlers.saveImportedData.postMessage(JSON.stringify(merged));
+        } catch {
+            // Browser testing fallback — no persistence needed
+        }
+
         // Show import banner
         showImportBanner(result.sessions.length, merged.length);
 
@@ -308,7 +315,6 @@ function showImportBanner(importedCount, totalCount) {
         <span class="dt-import-banner-text">
             Viewing merged data — <strong>${totalCount}</strong> total sessions (imported ${importedCount})
         </span>
-        <button class="dt-import-dismiss" onclick="location.reload()">Dismiss &amp; Reload</button>
     `;
 
     const container = document.querySelector('.container');

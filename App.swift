@@ -135,6 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
         contentController.add(self, name: "reload")
         contentController.add(self, name: "exportData")
         contentController.add(self, name: "importData")
+        contentController.add(self, name: "saveImportedData")
         config.userContentController = contentController
 
         webView = WKWebView(frame: window.contentView!.bounds, configuration: config)
@@ -162,6 +163,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
             handleExport(message.body as? String ?? "")
         case "importData":
             handleImport()
+        case "saveImportedData":
+            handleSaveImportedData(message.body as? String ?? "")
         default:
             break
         }
@@ -217,6 +220,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
             } catch {
                 self?.webView.evaluateJavaScript("window._showExportToast('Failed to read file', true)")
                 self?.webView.evaluateJavaScript("if(window._importDataResolver) window._importDataResolver(null)")
+            }
+        }
+    }
+
+    // MARK: - Persist Imported Data
+
+    func handleSaveImportedData(_ jsonString: String) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let resourcesPath = Bundle.main.resourcePath ?? "."
+            let cacheFile = resourcesPath + "/data/sessions-cache.json"
+
+            guard !jsonString.isEmpty else {
+                DispatchQueue.main.async {
+                    self?.webView.evaluateJavaScript("window._showExportToast('Failed to save imported data', true)")
+                }
+                return
+            }
+
+            do {
+                try jsonString.write(toFile: cacheFile, atomically: true, encoding: .utf8)
+            } catch {
+                DispatchQueue.main.async {
+                    self?.webView.evaluateJavaScript("window._showExportToast('Failed to save: \(error.localizedDescription)', true)")
+                }
             }
         }
     }
