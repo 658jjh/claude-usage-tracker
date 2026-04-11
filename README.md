@@ -183,4 +183,10 @@ This project is licensed under the [MIT License](LICENSE).
 
 Built with ❤️ for the Claude community
 
+### ☕ Support
+
+If this tool saves you time, consider buying me a coffee:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/stevie658jjh)
+
 </div>

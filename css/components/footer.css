@@ -8,6 +8,21 @@
     letter-spacing: 0.02em;
 }
 
+.footer-sep {
+    margin: 0 8px;
+    opacity: 0.5;
+}
+
+.footer-coffee {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-coffee:hover {
+    color: #ffdd00;
+}
+
 .no-data {
     text-align: center;
     padding: 48px;
