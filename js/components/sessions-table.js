@@ -9,6 +9,7 @@ import { formatNumber } from '../utils/formatters.js';
 import { getWeekStart, getWeekEnd, formatWeekLabel } from '../utils/date-utils.js';
 import { getModelInfo } from '../utils/model-utils.js';
 import { costClass, sourceClass } from '../utils/class-utils.js';
+import { loadSessionConversation } from '../utils/session-detail-loader.js';
 
 // Global reference to most expensive session (set by main.js)
 let mostExpensiveFile = null;
@@ -381,12 +382,46 @@ export function renderSessionTable(sessions) {
     updateToggleAllButton(false);
 }
 
+// Incremented on every modal open so out-of-order async loads can't paint
+// stale conversation history into a modal for a different session.
+let _sessionDetailRequestId = 0;
+
+function escapeHTML(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function renderHistoryItems(turns, truncated) {
+    if (!turns || turns.length === 0) {
+        return `<div class="history-empty">No conversation content recorded for this session.</div>`;
+    }
+    const items = turns.map((h, i) => `
+        <div class="history-msg history-${h.role} history-entering" style="animation-delay:${Math.min(i * 28, 420)}ms">
+            <div class="history-role">${h.role === 'user' ? 'You' : 'Claude'}</div>
+            <div class="history-text">${escapeHTML(h.text)}</div>
+        </div>`).join('');
+    const tail = truncated ? '<div class="history-truncated">… conversation continues</div>' : '';
+    return items + tail;
+}
+
 /**
  * Show the session detail modal for a given session index.
+ *
+ * Strategy for "instant open":
+ *  1. Render meta + token stats + a skeleton history placeholder synchronously.
+ *  2. Animate the modal in immediately.
+ *  3. Kick off a lazy load of the full conversation from the original JSONL
+ *     file (via the native Swift reply handler) and swap the skeleton for
+ *     the real content with a staggered fade-in.
  */
 export function showSessionDetail(idx) {
     const s = _sessionDetailStore[idx];
     if (!s) return;
+
+    const requestId = ++_sessionDetailRequestId;
 
     const mi = getModelInfo(s.model);
     const sc = sourceClass(s.source);
@@ -396,9 +431,17 @@ export function showSessionDetail(idx) {
     const isClaudeCode = s.source === 'Claude Code';
     const resumeCmd = `claude --resume ${sessionId}`;
 
-    let modalHTML = `
+    // Show a skeleton while the JSONL file is being read & parsed.
+    const skeletonHTML = `
+        <div class="history-skeleton" aria-hidden="true">
+            <div class="history-msg history-user skeleton-msg"><div class="skeleton-line w-30"></div><div class="skeleton-line w-80"></div></div>
+            <div class="history-msg history-ai skeleton-msg"><div class="skeleton-line w-20"></div><div class="skeleton-line w-90"></div><div class="skeleton-line w-60"></div></div>
+            <div class="history-msg history-user skeleton-msg"><div class="skeleton-line w-30"></div><div class="skeleton-line w-70"></div></div>
+        </div>`;
+
+    const modalHTML = `
         <div class="session-modal-header">
-            <div class="session-modal-title">${titleText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+            <div class="session-modal-title">${escapeHTML(titleText)}</div>
             <button class="session-modal-close" onclick="closeSessionDetail()">&times;</button>
         </div>
         <div class="session-modal-body">
@@ -417,11 +460,11 @@ export function showSessionDetail(idx) {
                 </div>
                 ${s.cwd ? `<div class="session-meta-row">
                     <span class="meta-label">Project</span>
-                    <span class="meta-value meta-mono">${s.cwd.replace(/</g, '&lt;')}</span>
+                    <span class="meta-value meta-mono">${escapeHTML(s.cwd)}</span>
                 </div>` : ''}
                 <div class="session-meta-row">
                     <span class="meta-label">Session ID</span>
-                    <span class="meta-value meta-mono">${sessionId}</span>
+                    <span class="meta-value meta-mono">${escapeHTML(sessionId)}</span>
                 </div>
             </div>
             <div class="session-modal-tokens">
@@ -431,27 +474,21 @@ export function showSessionDetail(idx) {
                 <div class="token-stat"><span class="token-stat-label">Cache Write</span><span class="token-stat-value">${formatNumber(s.cache_write || 0)}</span></div>
                 <div class="token-stat"><span class="token-stat-label">Cost</span><span class="token-stat-value cost-value ${costClass(s.cost)}">$${s.cost.toFixed(2)}</span></div>
             </div>
-            ${s.history && s.history.length > 0 ? `
-            <div class="session-modal-history">
+            <div class="session-modal-history" data-request-id="${requestId}">
                 <div class="history-label">Conversation History</div>
-                <div class="history-timeline">
-                    ${s.history.map(h => `
-                        <div class="history-msg history-${h.role}">
-                            <div class="history-role">${h.role === 'user' ? 'You' : 'Claude'}</div>
-                            <div class="history-text">${h.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-                        </div>`).join('')}
-                    ${s.history.length >= 15 ? '<div class="history-truncated">... conversation continues</div>' : ''}
+                <div class="history-timeline" id="session-history-timeline">
+                    ${skeletonHTML}
                 </div>
-            </div>` : ''}
+            </div>
             ${hasSessionId && isClaudeCode ? `
             <div class="session-modal-resume">
                 <div class="resume-label">Resume this session</div>
                 <div class="resume-cmd-row">
-                    <code class="resume-cmd">${resumeCmd}</code>
+                    <code class="resume-cmd">${escapeHTML(resumeCmd)}</code>
                     <button class="resume-copy-btn" onclick="copySessionCmd('${resumeCmd}', this)">Copy</button>
                 </div>
                 ${s.cwd ? `<div class="resume-cmd-row" style="margin-top:6px;">
-                    <code class="resume-cmd">cd ${s.cwd.replace(/'/g, "\\'")} && ${resumeCmd}</code>
+                    <code class="resume-cmd">cd ${escapeHTML(s.cwd)} && ${escapeHTML(resumeCmd)}</code>
                     <button class="resume-copy-btn" onclick="copySessionCmd('cd ${s.cwd.replace(/'/g, "\\\\'")} && ${resumeCmd}', this)">Copy</button>
                 </div>` : ''}
             </div>` : ''}
@@ -473,10 +510,34 @@ export function showSessionDetail(idx) {
         document.body.appendChild(modal);
     }
     modal.innerHTML = modalHTML;
-    // Trigger animation
+
+    // Trigger modal-open animation on the next frame so the transition runs.
     requestAnimationFrame(() => {
         overlay.classList.add('visible');
         modal.classList.add('visible');
+    });
+
+    // Kick off async conversation load. Race guard via requestId so clicking
+    // quickly between sessions always shows the latest one.
+    loadSessionConversation(s.filePath).then(result => {
+        if (requestId !== _sessionDetailRequestId) return;
+        const section = modal.querySelector('.session-modal-history');
+        if (!section || section.dataset.requestId !== String(requestId)) return;
+        const timeline = section.querySelector('.history-timeline');
+        if (!timeline) return;
+
+        if (result.error && result.turns.length === 0) {
+            timeline.innerHTML = `<div class="history-empty">${escapeHTML(result.error)}</div>`;
+            return;
+        }
+
+        // Fade the skeleton out, then swap to real content in one frame.
+        timeline.classList.add('is-swapping');
+        setTimeout(() => {
+            if (requestId !== _sessionDetailRequestId) return;
+            timeline.innerHTML = renderHistoryItems(result.turns, result.truncated);
+            timeline.classList.remove('is-swapping');
+        }, 140);
     });
 }
 

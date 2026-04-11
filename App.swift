@@ -4,10 +4,92 @@
 import Cocoa
 import WebKit
 
+/// Dedicated reply-style handler for the lazy session-detail loader.
+/// Kept in its own class so `AppDelegate` only conforms to
+/// `WKScriptMessageHandler` — combining both protocols on one class caused
+/// the JS bridge to reject the non-reply handlers at registration time.
+class SessionDetailBridge: NSObject, WKScriptMessageHandlerWithReply {
+
+    private let allowedRoots: [String] = {
+        let home = NSHomeDirectory()
+        let roots = [
+            "/.claude/projects",
+            "/.openclaw",
+            "/.clawdbot",
+            "/.cursor",
+            "/.windsurf",
+            "/.cline",
+            "/.roo-code",
+            "/.aider",
+            "/.continue",
+            "/Library/Application Support/Claude/local-agent-mode-sessions",
+            "/Library/Application Support/Cursor",
+            "/Library/Application Support/Windsurf",
+            "/Library/Application Support/Code/User/globalStorage",
+        ]
+        return roots.map { home + $0 }
+    }()
+
+    private func resolveAllowedPath(_ rawPath: String) -> String? {
+        guard !rawPath.isEmpty else { return nil }
+        let standardized = (rawPath as NSString).standardizingPath
+        let resolved = (standardized as NSString).resolvingSymlinksInPath
+        for root in allowedRoots {
+            let normalizedRoot = (root as NSString).resolvingSymlinksInPath
+            let rootWithSlash = normalizedRoot.hasSuffix("/") ? normalizedRoot : normalizedRoot + "/"
+            if resolved == normalizedRoot || resolved.hasPrefix(rootWithSlash) {
+                var isDir: ObjCBool = false
+                if FileManager.default.fileExists(atPath: resolved, isDirectory: &isDir), !isDir.boolValue {
+                    return resolved
+                }
+                return nil
+            }
+        }
+        return nil
+    }
+
+    func userContentController(_ userContentController: WKUserContentController,
+                               didReceive message: WKScriptMessage,
+                               replyHandler: @escaping (Any?, String?) -> Void) {
+        guard message.name == "loadSessionDetail" else {
+            replyHandler(nil, "unknown handler")
+            return
+        }
+        guard let rawPath = message.body as? String else {
+            replyHandler(nil, "invalid payload")
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else {
+                DispatchQueue.main.async { replyHandler(nil, "gone") }
+                return
+            }
+            guard let safePath = self.resolveAllowedPath(rawPath) else {
+                DispatchQueue.main.async { replyHandler(nil, "path not allowed") }
+                return
+            }
+            do {
+                let attrs = try FileManager.default.attributesOfItem(atPath: safePath)
+                let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
+                let maxBytes = 8 * 1024 * 1024
+                if size > maxBytes {
+                    DispatchQueue.main.async { replyHandler(nil, "file too large") }
+                    return
+                }
+                let content = try String(contentsOfFile: safePath, encoding: .utf8)
+                DispatchQueue.main.async { replyHandler(content, nil) }
+            } catch {
+                DispatchQueue.main.async { replyHandler(nil, error.localizedDescription) }
+            }
+        }
+    }
+}
+
 class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScriptMessageHandler {
     var window: NSWindow!
     var webView: WKWebView!
     var dashboardNavigation: WKNavigation?
+    let sessionDetailBridge = SessionDetailBridge()
 
     // MARK: - App Lifecycle
 
@@ -136,6 +218,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
         contentController.add(self, name: "exportData")
         contentController.add(self, name: "importData")
         contentController.add(self, name: "saveImportedData")
+        // Reply-style handler used by the session detail modal to lazy-load
+        // a single JSONL file off disk. Registered on a dedicated bridge
+        // object so AppDelegate stays a pure WKScriptMessageHandler.
+        contentController.addScriptMessageHandler(sessionDetailBridge, contentWorld: .page, name: "loadSessionDetail")
         config.userContentController = contentController
 
         webView = WKWebView(frame: window.contentView!.bounds, configuration: config)

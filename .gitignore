@@ -2,5 +2,8 @@
 data/data.js
 data/sessions-cache.json
 data/sessions-cache.json.tmp
+data/scan-index.json
+data/scan-index.json.tmp
+data/launcher.log
 *.app/
 node_modules/

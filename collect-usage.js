@@ -24,6 +24,9 @@ const os = require('os');
 const OUTPUT_DIR = path.join(__dirname, 'data');
 if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 const CACHE_FILE = path.join(OUTPUT_DIR, 'sessions-cache.json');
+// Fingerprint of every JSONL file we've already parsed: {filePath: {mtime,size}}.
+// Lets us skip re-parsing files that haven't changed since the last run.
+const SCAN_INDEX_FILE = path.join(OUTPUT_DIR, 'scan-index.json');
 
 const HOME = os.homedir();
 const TZ_OFFSET = -new Date().getTimezoneOffset() / 60;
@@ -122,11 +125,15 @@ function extractText(msg) {
 }
 
 /**
- * Extract session metadata + conversation history from a JSONL file.
- * Returns: { title, sessionId, cwd, history: [{role, text}] }
+ * Extract lightweight session metadata from a JSONL file.
+ * Full conversation history is NOT stored here — it is read on-demand from
+ * the original JSONL file when the user opens the detail modal, so the
+ * cache + data.js payload stays small and startup is fast.
+ *
+ * Returns: { title, sessionId, cwd }
  */
 function extractSessionMeta(filePath) {
-  const meta = { title: '', sessionId: '', cwd: '', history: [] };
+  const meta = { title: '', sessionId: '', cwd: '' };
   try {
     const content = fs.readFileSync(filePath, 'utf-8');
     const lines = content.split('\n').filter(l => l.trim());
@@ -146,23 +153,17 @@ function extractSessionMeta(filePath) {
       const role = msg.role;
       if (role !== 'user' && role !== 'assistant') continue;
 
-      const rawText = extractText(msg);
-      if (!rawText) continue;
-      const text = cleanMessageText(rawText);
-      if (!text) continue;
+      // We only need title + sessionId + cwd here. Bail as soon as we have
+      // everything we came for to avoid walking the full file.
+      if (foundTitle && meta.sessionId && meta.cwd) break;
 
-      // Set title from first user message
       if (!foundTitle && role === 'user') {
+        const rawText = extractText(msg);
+        if (!rawText) continue;
+        const text = cleanMessageText(rawText);
+        if (!text) continue;
         meta.title = text.length > 80 ? text.substring(0, 77) + '...' : text;
         foundTitle = true;
-      }
-
-      // Add to history (max 15 turns, 120 chars each)
-      if (meta.history.length < 15) {
-        meta.history.push({
-          role: role === 'user' ? 'user' : 'ai',
-          text: text.length > 120 ? text.substring(0, 117) + '...' : text
-        });
       }
     }
   } catch {}
@@ -176,7 +177,7 @@ function extractSessionMeta(filePath) {
   return meta;
 }
 
-function pushSessions(sessions, dayData, source, fileName, meta) {
+function pushSessions(sessions, dayData, source, fileName, meta, filePath) {
   meta = meta || {};
   for (const [date, data] of Object.entries(dayData)) {
     if (data.cost < 0.0001) continue;
@@ -194,10 +195,10 @@ function pushSessions(sessions, dayData, source, fileName, meta) {
       cache_write: data.cache_write,
       model: models[models.length - 1] || ''
     };
+    if (filePath) entry.filePath = filePath;
     if (meta.title) entry.title = meta.title;
     if (meta.sessionId) entry.sessionId = meta.sessionId;
     if (meta.cwd) entry.cwd = meta.cwd;
-    if (meta.history && meta.history.length > 0) entry.history = meta.history;
     sessions.push(entry);
   }
 }
@@ -220,6 +221,16 @@ function loadCache() {
     );
     if (valid.length < data.length) {
       console.warn(`⚠️  Filtered out ${data.length - valid.length} malformed cache entries`);
+    }
+    // Drop legacy embedded `history` field from older caches — detail is now
+    // loaded on-demand from the original JSONL, so keeping it just bloats
+    // memory and startup parse time.
+    let strippedHistory = 0;
+    for (const s of valid) {
+      if (s.history) { delete s.history; strippedHistory++; }
+    }
+    if (strippedHistory > 0) {
+      console.log(`🗜️  Stripped legacy history from ${strippedHistory} cache entries`);
     }
     return valid;
   } catch (e) {
@@ -253,6 +264,74 @@ function mergeSessions(freshSessions, cachedSessions) {
     }
   }
   return merged;
+}
+
+// ─── Scan index (mtime fingerprint) ──────────────────────
+//
+// This is the big startup win: we remember every JSONL file's mtime+size
+// from the previous run and skip re-parsing files that haven't changed.
+// A typical launch touches ~10k files but only a handful have actually been
+// written to since last launch, so we can drop collector cost from ~20s to
+// well under a second on steady state.
+
+function loadScanIndex() {
+  try {
+    if (!fs.existsSync(SCAN_INDEX_FILE)) return {};
+    const raw = fs.readFileSync(SCAN_INDEX_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    return (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveScanIndex(index) {
+  try {
+    const tmp = SCAN_INDEX_FILE + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(index));
+    fs.renameSync(tmp, SCAN_INDEX_FILE);
+  } catch (e) {
+    console.warn(`⚠️  Could not save scan index: ${e.message}`);
+  }
+}
+
+// Module-level scan state — populated in main().
+let _scanIndex = {};
+let _newScanIndex = {};
+let _cachedByFilePath = new Map();
+const _seenFilePaths = new Set();
+let _skipCount = 0;
+let _parseCount = 0;
+
+/**
+ * Scan one JSONL file: stat it, skip parsing if fingerprint is unchanged,
+ * otherwise parse it with the supplied parser and append freshly-collected
+ * session-day entries onto `sessions`.
+ */
+function processJsonlFile(sessions, source, fullPath, parser) {
+  let stat;
+  try { stat = fs.statSync(fullPath); } catch { return; }
+  _seenFilePaths.add(fullPath);
+
+  const prev = _scanIndex[fullPath];
+  const cached = _cachedByFilePath.get(fullPath);
+  if (prev && cached && prev.mtime === stat.mtimeMs && prev.size === stat.size) {
+    // Unchanged — reuse cached entries verbatim, skip the file read entirely.
+    for (const entry of cached) sessions.push(entry);
+    _newScanIndex[fullPath] = prev;
+    _skipCount++;
+    return;
+  }
+
+  try {
+    const dayData = parser(fullPath);
+    const meta = extractSessionMeta(fullPath);
+    pushSessions(sessions, dayData, source, path.basename(fullPath), meta, fullPath);
+    _newScanIndex[fullPath] = { mtime: stat.mtimeMs, size: stat.size };
+    _parseCount++;
+  } catch (e) {
+    console.error(`  Error: ${fullPath}: ${e.message}`);
+  }
 }
 
 // ─── Parser: OpenClaw / Clawdbot format ──────────────────
@@ -452,12 +531,7 @@ function collectOpenClaw() {
     for (const file of files) {
       if (seenFiles.has(file)) continue;
       seenFiles.add(file);
-      try {
-        const fullPath = path.join(sessDir, file);
-        const dayData = parseOpenClawFormat(fullPath);
-        const meta = extractSessionMeta(fullPath);
-        pushSessions(sessions, dayData, source, file, meta);
-      } catch (e) { console.error(`  Error: ${file}: ${e.message}`); }
+      processJsonlFile(sessions, source, path.join(sessDir, file), parseOpenClawFormat);
     }
   }
   return sessions;
@@ -467,13 +541,8 @@ function collectClaudeCode() {
   const sessions = [];
   const claudeDir = path.join(HOME, '.claude/projects');
   if (!fs.existsSync(claudeDir)) return sessions;
-  const files = findJsonl(claudeDir);
-  for (const filePath of files) {
-    try {
-      const dayData = parseClaudeCodeFormat(filePath);
-      const meta = extractSessionMeta(filePath);
-      pushSessions(sessions, dayData, 'Claude Code', path.basename(filePath), meta);
-    } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+  for (const filePath of findJsonl(claudeDir)) {
+    processJsonlFile(sessions, 'Claude Code', filePath, parseClaudeCodeFormat);
   }
   return sessions;
 }
@@ -482,34 +551,22 @@ function collectClaudeDesktop() {
   const sessions = [];
   const baseDir = path.join(HOME, 'Library/Application Support/Claude/local-agent-mode-sessions');
   if (!fs.existsSync(baseDir)) return sessions;
-  // Find all JSONL files recursively (exclude audit.jsonl)
-  const files = findJsonl(baseDir);
-  for (const filePath of files) {
-    try {
-      const dayData = parseClaudeCodeFormat(filePath); // Same format as Claude Code
-      const meta = extractSessionMeta(filePath);
-      pushSessions(sessions, dayData, 'Claude Desktop', path.basename(filePath), meta);
-    } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+  for (const filePath of findJsonl(baseDir)) {
+    processJsonlFile(sessions, 'Claude Desktop', filePath, parseClaudeCodeFormat);
   }
   return sessions;
 }
 
 function collectCursor() {
   const sessions = [];
-  // Cursor stores projects in multiple possible locations
   const searchDirs = [
     path.join(HOME, '.cursor/projects'),
     path.join(HOME, 'Library/Application Support/Cursor/User/workspaceStorage'),
   ];
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
-    const files = findJsonl(dir);
-    for (const filePath of files) {
-      try {
-        const dayData = parseClaudeCodeFormat(filePath);
-        const meta = extractSessionMeta(filePath);
-        pushSessions(sessions, dayData, 'Cursor', path.basename(filePath), meta);
-      } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+    for (const filePath of findJsonl(dir)) {
+      processJsonlFile(sessions, 'Cursor', filePath, parseClaudeCodeFormat);
     }
   }
   return sessions;
@@ -524,13 +581,8 @@ function collectWindsurf() {
   ];
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
-    const files = findJsonl(dir);
-    for (const filePath of files) {
-      try {
-        const dayData = parseClaudeCodeFormat(filePath);
-        const meta = extractSessionMeta(filePath);
-        pushSessions(sessions, dayData, 'Windsurf', path.basename(filePath), meta);
-      } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+    for (const filePath of findJsonl(dir)) {
+      processJsonlFile(sessions, 'Windsurf', filePath, parseClaudeCodeFormat);
     }
   }
   return sessions;
@@ -538,7 +590,6 @@ function collectWindsurf() {
 
 function collectCline() {
   const sessions = [];
-  // Cline stores task data in VS Code extension globalStorage
   const searchDirs = [
     path.join(HOME, '.cline'),
     path.join(HOME, 'Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev'),
@@ -546,14 +597,8 @@ function collectCline() {
   ];
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
-    const files = findJsonl(dir);
-    for (const filePath of files) {
-      try {
-        // Cline uses a mix of formats — try Claude Code format first
-        const dayData = parseClaudeCodeFormat(filePath);
-        const meta = extractSessionMeta(filePath);
-        pushSessions(sessions, dayData, 'Cline', path.basename(filePath), meta);
-      } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+    for (const filePath of findJsonl(dir)) {
+      processJsonlFile(sessions, 'Cline', filePath, parseClaudeCodeFormat);
     }
   }
   return sessions;
@@ -567,13 +612,8 @@ function collectRooCode() {
   ];
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
-    const files = findJsonl(dir);
-    for (const filePath of files) {
-      try {
-        const dayData = parseClaudeCodeFormat(filePath);
-        const meta = extractSessionMeta(filePath);
-        pushSessions(sessions, dayData, 'Roo Code', path.basename(filePath), meta);
-      } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+    for (const filePath of findJsonl(dir)) {
+      processJsonlFile(sessions, 'Roo Code', filePath, parseClaudeCodeFormat);
     }
   }
   return sessions;
@@ -587,19 +627,11 @@ function collectAider() {
   ];
   for (const dir of searchDirs) {
     if (!fs.existsSync(dir)) continue;
-    const files = [];
-    try {
-      for (const f of fs.readdirSync(dir)) {
-        if (f.endsWith('.jsonl') || f.endsWith('.json')) {
-          files.push(path.join(dir, f));
-        }
-      }
-    } catch {}
-    for (const filePath of files) {
-      try {
-        const dayData = parseAiderFormat(filePath);
-        pushSessions(sessions, dayData, 'Aider', path.basename(filePath), {});
-      } catch (e) { console.error(`  Error: ${filePath}: ${e.message}`); }
+    let entries;
+    try { entries = fs.readdirSync(dir); } catch { continue; }
+    for (const f of entries) {
+      if (!f.endsWith('.jsonl') && !f.endsWith('.json')) continue;
+      processJsonlFile(sessions, 'Aider', path.join(dir, f), parseAiderFormat);
     }
   }
   return sessions;
@@ -609,15 +641,12 @@ function collectContinue() {
   const sessions = [];
   const sessDir = path.join(HOME, '.continue/sessions');
   if (!fs.existsSync(sessDir)) return sessions;
-  try {
-    for (const f of fs.readdirSync(sessDir)) {
-      if (!f.endsWith('.json')) continue;
-      try {
-        const dayData = parseContinueFormat(path.join(sessDir, f));
-        pushSessions(sessions, dayData, 'Continue', f, {});
-      } catch {}
-    }
-  } catch {}
+  let entries;
+  try { entries = fs.readdirSync(sessDir); } catch { return sessions; }
+  for (const f of entries) {
+    if (!f.endsWith('.json')) continue;
+    processJsonlFile(sessions, 'Continue', path.join(sessDir, f), parseContinueFormat);
+  }
   return sessions;
 }
 
@@ -641,6 +670,19 @@ const sources = [
 let allSessions = [];
 const sourceResults = {};
 
+// Pre-load cache + scan index so processJsonlFile can skip unchanged files.
+// These populate module-level state used by processJsonlFile().
+const cachedSessions = loadCache();
+_scanIndex = loadScanIndex();
+_newScanIndex = {};
+_cachedByFilePath = new Map();
+for (const s of cachedSessions) {
+  if (!s.filePath) continue;
+  const arr = _cachedByFilePath.get(s.filePath);
+  if (arr) { arr.push(s); } else { _cachedByFilePath.set(s.filePath, [s]); }
+}
+
+const scanStartedAt = Date.now();
 for (const { name, fn } of sources) {
   process.stdout.write(`Scanning ${name}... `);
   const sessions = fn();
@@ -653,17 +695,32 @@ for (const { name, fn } of sources) {
   allSessions.push(...sessions);
 }
 
-console.log('');
+const scanMs = Date.now() - scanStartedAt;
+console.log(`\n⚡ Scan: ${_parseCount} parsed, ${_skipCount} skipped (unchanged) in ${scanMs}ms`);
 
-// Load cached historical sessions and merge with fresh data
-const cachedSessions = loadCache();
-if (cachedSessions.length > 0) {
-  console.log(`📦 Loaded ${cachedSessions.length} cached session entries`);
+// Preserve historical/imported cache entries whose file wasn't visited this
+// run — either the original file is gone, or they were imported from another
+// machine and have no local filePath.
+let preservedHistorical = 0;
+for (const s of cachedSessions) {
+  if (!s.filePath || !_seenFilePaths.has(s.filePath)) {
+    allSessions.push(s);
+    preservedHistorical++;
+  }
 }
-allSessions = mergeSessions(allSessions, cachedSessions);
-if (cachedSessions.length > 0) {
-  console.log(`📊 Total after merge: ${allSessions.length} session-day entries\n`);
+if (preservedHistorical > 0) {
+  console.log(`📦 Preserved ${preservedHistorical} historical/imported entries`);
 }
+
+// Dedupe just in case: source|file|date must be unique.
+const dedupedMap = new Map();
+for (const s of allSessions) {
+  dedupedMap.set(`${s.source}|${s.file}|${s.date}`, s);
+}
+allSessions = [...dedupedMap.values()];
+console.log(`📊 Total after merge: ${allSessions.length} session-day entries\n`);
+
+saveScanIndex(_newScanIndex);
 
 // Generate summary
 const today = toLocalDate(Date.now());
