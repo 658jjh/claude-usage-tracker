@@ -106,7 +106,9 @@ export function importData() {
 }
 
 /**
- * Merge imported sessions with existing sessions, deduplicating by sessionId+date.
+ * Merge imported sessions with existing sessions, deduplicating by source+file+date.
+ * Mirrors the collector's dedup key — sessionId alone is not unique because
+ * Claude Code sub-agents share one sessionId across multiple .jsonl files.
  *
  * @param {Array} existing - Current session array
  * @param {Array} incoming - Imported session array
@@ -115,15 +117,15 @@ export function importData() {
 export function mergeSessions(existing, incoming) {
     const seen = new Set();
     const merged = [];
+    const keyOf = (s) => (s.source || '') + '|' + (s.file || '') + '|' + s.date;
 
     for (const s of existing) {
-        const key = (s.sessionId || s.file || '') + '|' + s.date;
-        seen.add(key);
+        seen.add(keyOf(s));
         merged.push(s);
     }
 
     for (const s of incoming) {
-        const key = (s.sessionId || s.file || '') + '|' + s.date;
+        const key = keyOf(s);
         if (!seen.has(key)) {
             seen.add(key);
             merged.push(s);
