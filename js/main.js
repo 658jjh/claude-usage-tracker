@@ -77,6 +77,19 @@ function toggleAllForCurrentView() {
     }
 }
 
+function formatSinceLabel(sessions) {
+    if (!sessions || sessions.length === 0) return 'Since tracking began';
+    let earliest = sessions[0].date;
+    for (let i = 1; i < sessions.length; i++) {
+        if (sessions[i].date < earliest) earliest = sessions[i].date;
+    }
+    if (!earliest) return 'Since tracking began';
+    const formatted = new Date(earliest + 'T00:00:00').toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric'
+    });
+    return 'Since ' + formatted;
+}
+
 function updateTableHeader(view) {
     const thead = document.getElementById('sessions-thead');
     if (!thead) return;
@@ -142,6 +155,9 @@ async function loadData() {
 
         // === Combine All Sessions ===
         const allSessions = [...openclawSessions, ...claudeSessions];
+
+        // === All-Time Since Date ===
+        document.getElementById('total-since').textContent = formatSinceLabel(allSessions);
 
         // === Calculate This Week Cost ===
         const thisWeekStart = getWeekStart(summary.today);
@@ -327,6 +343,7 @@ function reRenderDashboard(summary, sessions) {
     document.getElementById('today-cost').textContent = '$' + summary.today_cost.toFixed(2);
     document.getElementById('month-cost').textContent = '$' + summary.month_cost.toFixed(2);
     document.getElementById('total-cost').textContent = '$' + summary.totals.grand_total.toFixed(2);
+    document.getElementById('total-since').textContent = formatSinceLabel(sessions);
     document.getElementById('session-count').textContent = sessions.length.toString();
 
     // Recalc week cost

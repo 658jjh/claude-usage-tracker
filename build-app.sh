@@ -26,7 +26,7 @@ swiftc -O \
     "$SCRIPT_DIR/App.swift" \
     -framework Cocoa \
     -framework WebKit \
-    -target "$(uname -m)-apple-macos12.0"
+    -target "${BUILD_ARCH:-$(uname -m)}-apple-macos12.0"
 echo "  ✅ Binary compiled"
 
 # Copy the core files into Resources
@@ -52,9 +52,9 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.openclaw.usage-dashboard</string>
     <key>CFBundleVersion</key>
-    <string>2.2</string>
+    <string>2.2.1</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.2</string>
+    <string>2.2.1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleIconFile</key>
