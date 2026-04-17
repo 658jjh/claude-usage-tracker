@@ -58,7 +58,9 @@ function parseTimestamp(ts) {
 function getPricing(model) {
   if (!model) return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
   const m = model.toLowerCase();
-  if (m.includes('opus-4-6') || m.includes('opus-4.6') || m.includes('opus-4-5') || m.includes('opus-4.5'))
+  if (m.includes('opus-5'))
+    return { input: 20, output: 100, cacheWrite: 25, cacheRead: 2.0 };
+  if (m.includes('opus-4-5') || m.includes('opus-4.5') || m.includes('opus-4-6') || m.includes('opus-4.6') || m.includes('opus-4-7') || m.includes('opus-4.7') || m.includes('opus-4-8') || m.includes('opus-4.8') || m.includes('opus-4-9') || m.includes('opus-4.9'))
     return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
   if (m.includes('opus-4-1') || m.includes('opus-4.1'))
     return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };

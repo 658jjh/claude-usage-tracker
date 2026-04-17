@@ -54,8 +54,8 @@ export function getPricingForModel(model) {
     // CURRENT MODELS (Claude 4.x)
     // ============================================================
 
-    // Opus 4.6 and 4.5 (cheaper than older Opus)
-    if (m.includes('opus-4-6') || m.includes('opus-4.6') || m.includes('opus-4-5') || m.includes('opus-4.5'))
+    // Opus 4.5 through 4.9 (cheaper than older Opus)
+    if (m.includes('opus-4-5') || m.includes('opus-4.5') || m.includes('opus-4-6') || m.includes('opus-4.6') || m.includes('opus-4-7') || m.includes('opus-4.7') || m.includes('opus-4-8') || m.includes('opus-4.8') || m.includes('opus-4-9') || m.includes('opus-4.9'))
         return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
 
     // Opus 4.1, 4.0 and Claude 3 Opus (more expensive)
@@ -137,6 +137,9 @@ export function getModelInfo(model) {
     // ============================================================
 
     // Opus 4.x versions (most recent first)
+    if (m.includes('opus-4-9') || m.includes('opus-4.9')) return { name: 'Opus 4.9', cls: 'model-opus' };
+    if (m.includes('opus-4-8') || m.includes('opus-4.8')) return { name: 'Opus 4.8', cls: 'model-opus' };
+    if (m.includes('opus-4-7') || m.includes('opus-4.7')) return { name: 'Opus 4.7', cls: 'model-opus' };
     if (m.includes('opus-4-6') || m.includes('opus-4.6')) return { name: 'Opus 4.6', cls: 'model-opus' };
     if (m.includes('opus-4-5') || m.includes('opus-4.5')) return { name: 'Opus 4.5', cls: 'model-opus' };
     if (m.includes('opus-4-1') || m.includes('opus-4.1')) return { name: 'Opus 4.1', cls: 'model-opus' };
