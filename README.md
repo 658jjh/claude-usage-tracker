@@ -23,7 +23,7 @@
 
 <br />
 
-<img src="screenshots/demo1.png" alt="Claude Usage Tracker Dashboard" width="900" />
+<img src="assets/screenshots/demo1.png" alt="Claude Usage Tracker Dashboard" width="900" />
 
 <br /><br />
 
@@ -67,7 +67,7 @@
 ### Dashboard Overview
 
 <p align="center">
-  <img src="screenshots/demo1.png" alt="Dashboard Overview" width="900" />
+  <img src="assets/screenshots/demo1.png" alt="Dashboard Overview" width="900" />
 </p>
 
 > Top-line stats (Today / Week / Month / All-time / Sessions), daily spend chart with source breakdown, and donut charts for cost-by-source and cost-by-model.
@@ -77,7 +77,7 @@
 ### Projects View
 
 <p align="center">
-  <img src="screenshots/demo2.png" alt="Projects View" width="900" />
+  <img src="assets/screenshots/demo2.png" alt="Projects View" width="900" />
 </p>
 
 > Cost grouped by working directory — see which projects burn through your token budget. Filter by source, model, date range, and minimum cost.
@@ -87,7 +87,7 @@
 ### Session Log — Timeline
 
 <p align="center">
-  <img src="screenshots/demo3.png" alt="Session Log Timeline" width="900" />
+  <img src="assets/screenshots/demo3.png" alt="Session Log Timeline" width="900" />
 </p>
 
 > Day-by-day session timeline with expandable rows. Color-coded model chips, full token breakdown (input / output / cache read / cache write), and per-day totals.
@@ -97,7 +97,7 @@
 ### Peak Hours Heatmap
 
 <p align="center">
-  <img src="screenshots/demo4.png" alt="Peak Hours Heatmap" width="900" />
+  <img src="assets/screenshots/demo4.png" alt="Peak Hours Heatmap" width="900" />
 </p>
 
 > Hour × day activity grid revealing your most productive — and most expensive — coding hours.
@@ -107,7 +107,7 @@
 ### Session Detail
 
 <p align="center">
-  <img src="screenshots/demo5.png" alt="Session Detail Panel" width="420" />
+  <img src="assets/screenshots/demo5.png" alt="Session Detail Panel" width="420" />
 </p>
 
 > Drill into any session: token breakdown, conversation preview, and a one-click resume command for Claude Code.
@@ -223,6 +223,7 @@ Then double-click **Claude Usage Dashboard.app** — it collects fresh data and 
 ### Option 3 — Browser Mode (any OS)
 
 ```bash
+cd src
 node collect-usage.js
 python3 -m http.server 8765
 open http://localhost:8765/dashboard.html
