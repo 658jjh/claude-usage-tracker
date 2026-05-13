@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/node-%E2%89%A516-22c55e?style=flat-square" alt="Node" />
   <img src="https://img.shields.io/github/downloads/658jjh/claude-usage-tracker/total?label=downloads&color=ec4899&style=flat-square" alt="Downloads" />
   <img src="https://img.shields.io/badge/version-v2.2.2-f59e0b?style=flat-square" alt="Version" />
+  <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><img src="https://img.shields.io/badge/premium_build-%249-22c55e?style=flat-square" alt="Premium Build" /></a>
 </p>
 
 <p>
@@ -37,6 +38,12 @@
 
 > [!TIP]
 > **No cloud. No telemetry. No accounts.** Everything stays on your machine — your data never leaves your laptop.
+
+This project is open source under the MIT license. You can build and use it yourself for free. If you want the convenience of a ready-to-use signed macOS app with premium licensing, automatic update checks, and one-click updates, you can buy the **Premium Build** for **$9**:
+
+<p>
+  <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><strong>Buy Premium Build →</strong></a>
+</p>
 
 <table>
 <tr>
@@ -171,6 +178,7 @@
 
 #### ⚡ Productivity
 - Standalone `.app` bundle
+- Premium build with automatic update checks
 - Keyboard shortcuts (`Shift+E`)
 - One-click session resume
 - Browser-mode fallback
@@ -183,32 +191,23 @@
 
 ## 🚀 Quick Start
 
-### Option 1 — Download (Recommended)
+### Option 1 — Premium Build (Convenience)
 
-<table>
-<tr>
-<th>Platform</th>
-<th>Download</th>
-<th>Requirements</th>
-</tr>
-<tr>
-<td>🍎 macOS (Apple Silicon)</td>
-<td><a href="https://github.com/658jjh/claude-usage-tracker/releases/download/v2.2.2/Claude-Usage-Tracker-macOS-AppleSilicon.zip"><strong>v2.2.2 — Download</strong></a></td>
-<td rowspan="2">Node.js v16+ · macOS 12.0+</td>
-</tr>
-<tr>
-<td>🍎 macOS (Intel)</td>
-<td><a href="https://github.com/658jjh/claude-usage-tracker/releases/download/v2.2.2/Claude-Usage-Tracker-macOS-Intel.zip"><strong>v2.2.2 — Download</strong></a></td>
-</tr>
-</table>
+The source code is free, but the premium build is the easiest way to use the app on macOS.
 
-Unzip → drag **Claude Usage Dashboard.app** to Applications → double-click to launch.
+- **Price:** $9 one-time purchase
+- **Includes:** signed macOS app, license management, automatic update checks, and one-click updates
+- **Requirements:** Node.js v16+ · macOS 12.0+
 
-[**View all releases →**](https://github.com/658jjh/claude-usage-tracker/releases)
+<p>
+  <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><strong>Buy Premium Build →</strong></a>
+</p>
+
+After purchase, download the app, unzip it, drag **Claude Usage Dashboard.app** to Applications, and double-click to launch.
 
 <br />
 
-### Option 2 — Build from Source
+### Option 2 — Build From Source (Free)
 
 ```bash
 git clone https://github.com/658jjh/claude-usage-tracker.git
@@ -217,6 +216,8 @@ cd claude-usage-tracker
 ```
 
 Then double-click **Claude Usage Dashboard.app** — it collects fresh data and renders everything in a native window.
+
+The source build is open source and does not include the premium license gate or premium update checker.
 
 <br />
 
@@ -400,7 +401,11 @@ This project is licensed under the [**MIT License**](LICENSE).
 
 #### ☕ Support the project
 
-If this tool saves you time, consider buying me a coffee:
+If this tool saves you time, consider buying the premium convenience build or buying me a coffee:
+
+<p>
+  <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><strong>Buy Premium Build — $9</strong></a>
+</p>
 
 <a href="https://buymeacoffee.com/stevie658jjh">
   <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee" />
