@@ -80,9 +80,6 @@
   <!-- Thin gradient border -->
   <rect x="3" y="3" width="506" height="506" rx="105" ry="105" fill="none" stroke="url(#bgGrad)" stroke-width="1.5" opacity="0.4"/>
 
-  <!-- Inner chart panel -->
-  <rect x="80" y="100" width="352" height="312" rx="20" ry="20" fill="#131b2e" opacity="0.6"/>
-
   <!-- Baseline -->
   <line x1="110" y1="370" x2="402" y2="370" stroke="#253147" stroke-width="1.5" opacity="0.6"/>
 
