@@ -203,7 +203,7 @@ The source code is free, but the premium build is the easiest way to use the app
   <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><strong>Buy Premium Build →</strong></a>
 </p>
 
-After purchase, download the app, unzip it, drag **Claude Usage Dashboard.app** to Applications, and double-click to launch.
+After purchase, download the `.dmg`, open it, drag **Claude Usage Tracker** to **Applications**, and launch.
 
 <br />
 
@@ -215,7 +215,7 @@ cd claude-usage-tracker
 ./build-app.sh
 ```
 
-Then double-click **Claude Usage Dashboard.app** — it collects fresh data and renders everything in a native window.
+Then double-click **Claude Usage Tracker.app** — it collects fresh data and renders everything in a native window.
 
 The source build is open source and does not include the premium license gate or premium update checker.
 

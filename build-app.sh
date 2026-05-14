@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build a standalone macOS .app for Claude Usage Dashboard
+# Build a standalone macOS .app for Claude Usage Tracker
 # Double-click to collect fresh data + view dashboard in a native window.
 
 set -e
@@ -9,7 +9,7 @@ SRC_DIR="$SCRIPT_DIR/src"
 PREMIUM_DIR="$SCRIPT_DIR/src-premium"
 ASSETS_DIR="$SCRIPT_DIR/assets"
 DIST_DIR="$SCRIPT_DIR/dist"
-APP_NAME="Claude Usage Dashboard"
+APP_NAME="Claude Usage Tracker"
 VERSION_FILE="$SCRIPT_DIR/VERSION"
 if [ -n "${APP_VERSION:-}" ]; then
     APP_VERSION="$APP_VERSION"
@@ -53,8 +53,8 @@ mkdir -p "$MACOS" "$RESOURCES/data"
 
 # ─── Compile native Swift app (universal binary) ──────────
 echo "⚙️  Compiling universal binary (arm64 + x86_64) ..."
-TMP_BIN_ARM="$(mktemp -t ClaudeUsageDashboard.arm64.XXXX)"
-TMP_BIN_X86="$(mktemp -t ClaudeUsageDashboard.x86_64.XXXX)"
+TMP_BIN_ARM="$(mktemp -t ClaudeUsageTracker.arm64.XXXX)"
+TMP_BIN_X86="$(mktemp -t ClaudeUsageTracker.x86_64.XXXX)"
 trap 'rm -f "$TMP_BIN_ARM" "$TMP_BIN_X86"' EXIT
 
 swiftc -O -parse-as-library "${SWIFT_DEFINES[@]}" -o "$TMP_BIN_ARM" \
@@ -65,8 +65,8 @@ swiftc -O -parse-as-library "${SWIFT_DEFINES[@]}" -o "$TMP_BIN_X86" \
     "$SRC_DIR/App.swift" "${PREMIUM_FILES[@]}" \
     -framework Cocoa -framework WebKit \
     -target x86_64-apple-macos12.0
-lipo -create -output "$MACOS/ClaudeUsageDashboard" "$TMP_BIN_ARM" "$TMP_BIN_X86"
-echo "  ✅ Universal binary built: $(lipo -archs "$MACOS/ClaudeUsageDashboard")"
+lipo -create -output "$MACOS/ClaudeUsageTracker" "$TMP_BIN_ARM" "$TMP_BIN_X86"
+echo "  ✅ Universal binary built: $(lipo -archs "$MACOS/ClaudeUsageTracker")"
 
 # Copy the core files into Resources
 cp "$SRC_DIR/collect-usage.js" "$RESOURCES/"
@@ -83,13 +83,13 @@ cat > "$CONTENTS/Info.plist" << PLIST
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>ClaudeUsageDashboard</string>
+    <string>ClaudeUsageTracker</string>
     <key>CFBundleName</key>
-    <string>Claude Usage Dashboard</string>
+    <string>Claude Usage Tracker</string>
     <key>CFBundleDisplayName</key>
-    <string>Claude Usage Dashboard</string>
+    <string>Claude Usage Tracker</string>
     <key>CFBundleIdentifier</key>
-    <string>com.openclaw.usage-dashboard</string>
+    <string>com.claudeusagetracker</string>
     <key>CFBundleVersion</key>
     <string>$APP_VERSION</string>
     <key>CFBundleShortVersionString</key>
@@ -176,7 +176,7 @@ if [ -n "$SIGN_IDENTITY" ]; then
     echo "  ✅ Signed"
 
     if [ -n "$NOTARY_PROFILE" ]; then
-        ZIP_PATH="$DIST_DIR/ClaudeUsageDashboard.zip"
+        ZIP_PATH="$DIST_DIR/ClaudeUsageTracker.zip"
         echo ""
         echo "📤 Submitting for notarization (profile: $NOTARY_PROFILE) ..."
         ditto -c -k --keepParent "$APP_DIR" "$ZIP_PATH"
@@ -198,11 +198,69 @@ if [ -n "$SIGN_IDENTITY" ]; then
     fi
 fi
 
+# ─── DMG installer ────────────────────────────────────────
+# Produces dist/ClaudeUsageTracker-<version>.dmg with a /Applications
+# shortcut so users get the standard "drag to install" window.
+# Set SKIP_DMG=1 to opt out.
+if [ "${SKIP_DMG:-}" != "1" ]; then
+    DMG_NAME="ClaudeUsageTracker-$APP_VERSION"
+    DMG_PATH="$DIST_DIR/$DMG_NAME.dmg"
+    DMG_VOLNAME="Claude Usage Tracker"
+    rm -f "$DMG_PATH"
+
+    echo ""
+    if command -v create-dmg &>/dev/null; then
+        echo "💿 Creating styled DMG installer..."
+        # create-dmg already builds its own staging dir; pass the .app directly.
+        # It exits non-zero when the codesign step is skipped, even on success —
+        # so we check for the output file rather than $?.
+        create-dmg \
+            --volname "$DMG_VOLNAME" \
+            --window-pos 200 120 \
+            --window-size 540 380 \
+            --icon-size 96 \
+            --icon "$APP_NAME.app" 140 190 \
+            --hide-extension "$APP_NAME.app" \
+            --app-drop-link 400 190 \
+            --no-internet-enable \
+            "$DMG_PATH" \
+            "$APP_DIR" >/dev/null 2>&1 || true
+    else
+        echo "💿 Creating DMG installer (install create-dmg via 'brew install create-dmg' for a styled window)..."
+        DMG_STAGE="$(mktemp -d -t claude-usage-dmg.XXXX)"
+        cp -R "$APP_DIR" "$DMG_STAGE/"
+        ln -s /Applications "$DMG_STAGE/Applications"
+        hdiutil create \
+            -volname "$DMG_VOLNAME" \
+            -srcfolder "$DMG_STAGE" \
+            -ov -format UDZO \
+            "$DMG_PATH" >/dev/null 2>&1 || true
+        rm -rf "$DMG_STAGE"
+    fi
+
+    if [ -f "$DMG_PATH" ]; then
+        # Sign the DMG container itself if a signing identity is set (Gatekeeper
+        # treats a signed DMG more leniently than an unsigned one).
+        if [ -n "$SIGN_IDENTITY" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" --timestamp "$DMG_PATH" >/dev/null 2>&1 \
+                && echo "  🔏 DMG signed"
+        fi
+        echo "  ✅ DMG: $DMG_PATH"
+    else
+        echo "  ⚠️  DMG creation failed"
+    fi
+fi
+
 # ─── Done ─────────────────────────────────────────────────
 echo ""
 echo "✅ Built: $APP_DIR"
+if [ "${SKIP_DMG:-}" != "1" ] && [ -f "${DMG_PATH:-}" ]; then
+    echo "✅ DMG:   $DMG_PATH"
+fi
 echo ""
 echo "You can now:"
-echo "  • Double-click '$APP_NAME.app' in Finder"
-echo "  • Drag it to /Applications or your Desktop"
+if [ -f "${DMG_PATH:-}" ]; then
+    echo "  • Distribute the .dmg — users open it and drag the app to /Applications"
+fi
+echo "  • Double-click '$APP_NAME.app' in Finder for a local run"
 echo "  • It opens as a native app — no browser or Python needed"

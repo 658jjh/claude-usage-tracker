@@ -1,4 +1,4 @@
-// App.swift — Native macOS app for Claude Usage Dashboard
+// App.swift — Native macOS app for Claude Usage Tracker
 // Renders the dashboard in a WKWebView instead of opening a browser.
 
 import Cocoa
@@ -146,11 +146,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
         let appMenuItem = NSMenuItem()
         mainMenu.addItem(appMenuItem)
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About Claude Usage Dashboard",
+        appMenu.addItem(withTitle: "About Claude Usage Tracker",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Hide Claude Usage Dashboard",
+        appMenu.addItem(withTitle: "Hide Claude Usage Tracker",
                         action: #selector(NSApplication.hide(_:)),
                         keyEquivalent: "h")
         let hideOthers = appMenu.addItem(withTitle: "Hide Others",
@@ -170,7 +170,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
                         keyEquivalent: "")
         #endif
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit Claude Usage Dashboard",
+        appMenu.addItem(withTitle: "Quit Claude Usage Tracker",
                         action: #selector(NSApplication.terminate(_:)),
                         keyEquivalent: "q")
         appMenuItem.submenu = appMenu
@@ -235,7 +235,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
             backing: .buffered,
             defer: false
         )
-        window.title = "Claude Usage Dashboard"
+        window.title = "Claude Usage Tracker"
         window.appearance = NSAppearance(named: .darkAqua)
         window.backgroundColor = NSColor(red: 0.039, green: 0.055, blue: 0.09, alpha: 1.0)
         window.titlebarAppearsTransparent = true
@@ -397,7 +397,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
             DispatchQueue.main.async {
                 let alert = NSAlert()
                 alert.messageText = "Node.js not found"
-                alert.informativeText = "Claude Usage Dashboard requires Node.js to collect data.\nInstall it from https://nodejs.org"
+                alert.informativeText = "Claude Usage Tracker requires Node.js to collect data.\nInstall it from https://nodejs.org"
                 alert.alertStyle = .critical
                 alert.runModal()
                 NSApp.terminate(nil)
@@ -837,7 +837,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
                     <rect width="512" height="512" rx="108" ry="108" fill="#0f1629"/>
                     <rect width="512" height="512" rx="108" ry="108" fill="url(#gw)" opacity="0.5"/>
                     <rect x="3" y="3" width="506" height="506" rx="105" ry="105" fill="none" stroke="url(#g)" stroke-width="1.5" opacity="0.4"/>
-                    <rect x="80" y="100" width="352" height="312" rx="20" ry="20" fill="#131b2e" opacity="0.6"/>
                     <line x1="110" y1="370" x2="402" y2="370" stroke="#253147" stroke-width="1.5" opacity="0.6"/>
                     <rect x="122" y="238" width="50" height="132" rx="8" ry="8" fill="url(#b1)" opacity="0.92"/>
                     <rect x="192" y="168" width="50" height="202" rx="8" ry="8" fill="url(#b2)" opacity="0.92"/>
