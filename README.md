@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/platform-macOS-a78bfa?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/node-%E2%89%A516-22c55e?style=flat-square" alt="Node" />
   <img src="https://img.shields.io/github/downloads/658jjh/claude-usage-tracker/total?label=downloads&color=ec4899&style=flat-square" alt="Downloads" />
-  <img src="https://img.shields.io/badge/version-v2.2.3-f59e0b?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v2.2.4-f59e0b?style=flat-square" alt="Version" />
   <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><img src="https://img.shields.io/badge/premium_build-%249-22c55e?style=flat-square" alt="Premium Build" /></a>
 </p>
 
