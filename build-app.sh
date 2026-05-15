@@ -49,7 +49,10 @@ echo "🏷️  Version: $APP_VERSION"
 rm -rf "$APP_DIR"
 
 # Create .app bundle structure (and dist/)
-mkdir -p "$MACOS" "$RESOURCES/data"
+# Runtime data (sessions-cache.json, scan-index.json, data.js, launcher.log)
+# is written to ~/Library/Application Support/ClaudeUsageTracker, not into
+# the bundle — so there's no Resources/data subdir to create here.
+mkdir -p "$MACOS" "$RESOURCES"
 
 # ─── Compile native Swift app (universal binary) ──────────
 echo "⚙️  Compiling universal binary (arm64 + x86_64) ..."

@@ -99,6 +99,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
     var dashboardNavigation: WKNavigation?
     let sessionDetailBridge = SessionDetailBridge()
 
+    /// Runtime/user-generated files live outside the .app bundle so they
+    /// survive every upgrade path (DMG drag-replace, build-app.sh rebuild,
+    /// in-app premium updater). Writing inside the bundle would also
+    /// invalidate its code signature.
+    private static let userDataDir: String = {
+        let home = NSHomeDirectory()
+        let dir = "\(home)/Library/Application Support/ClaudeUsageTracker"
+        try? FileManager.default.createDirectory(
+            atPath: dir, withIntermediateDirectories: true
+        )
+        return dir
+    }()
+
     // MARK: - App Lifecycle
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -352,8 +365,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
 
     func handleSaveImportedData(_ jsonString: String) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let resourcesPath = Bundle.main.resourcePath ?? "."
-            let cacheFile = resourcesPath + "/data/sessions-cache.json"
+            let cacheFile = AppDelegate.userDataDir + "/sessions-cache.json"
 
             guard !jsonString.isEmpty else {
                 DispatchQueue.main.async {
@@ -405,22 +417,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
             return
         }
 
-        // Ensure data directory exists
-        let dataDir = resourcesPath + "/data"
-        try? FileManager.default.createDirectory(atPath: dataDir, withIntermediateDirectories: true)
-
         let process = Process()
         process.executableURL = URL(fileURLWithPath: node)
         process.arguments = [resourcesPath + "/collect-usage.js"]
         process.currentDirectoryURL = URL(fileURLWithPath: resourcesPath)
 
-        // Ensure child process has a usable PATH
+        // Ensure child process has a usable PATH and knows where to write data
         var env = ProcessInfo.processInfo.environment
         let extra = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
         env["PATH"] = extra + ":" + (env["PATH"] ?? "")
+        env["CLAUDE_USAGE_DATA_DIR"] = AppDelegate.userDataDir
         process.environment = env
 
-        let logPath = dataDir + "/launcher.log"
+        let logPath = AppDelegate.userDataDir + "/launcher.log"
         FileManager.default.createFile(atPath: logPath, contents: nil)
         if let logHandle = FileHandle(forWritingAtPath: logPath) {
             process.standardOutput = logHandle
@@ -471,6 +480,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScri
         let resourcesPath = Bundle.main.resourcePath ?? "."
         let dashboardURL = URL(fileURLWithPath: resourcesPath + "/dashboard.html")
         let resourcesDir = URL(fileURLWithPath: resourcesPath, isDirectory: true)
+
+        // data.js lives outside the bundle in userDataDir, but the WebView is
+        // sandboxed to Resources. Inject the collector's output as a user
+        // script at document start so the dashboard sees the globals before
+        // any other script runs. removeAllUserScripts() clears the previous
+        // injection on reload but leaves WKScriptMessageHandler bindings
+        // (reload/export/import/saveImportedData) intact.
+        let controller = webView.configuration.userContentController
+        controller.removeAllUserScripts()
+        let dataJs = (try? String(contentsOfFile: AppDelegate.userDataDir + "/data.js", encoding: .utf8)) ?? ""
+        controller.addUserScript(WKUserScript(
+            source: dataJs,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        ))
 
         webView.alphaValue = 0
         dashboardNavigation = webView.loadFileURL(dashboardURL, allowingReadAccessTo: resourcesDir)
