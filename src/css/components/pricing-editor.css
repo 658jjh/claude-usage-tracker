@@ -1,0 +1,256 @@
+/* ── Pricing Editor — кнопка и модалка ─────────── */
+
+/* Кнопка в хедере */
+.dt-btn-pricing:hover {
+    border-color: var(--accent-amber);
+    color: var(--accent-amber);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.1);
+}
+
+/* ── Overlay ──────────────────────────────────── */
+.pricing-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.pricing-overlay.pricing-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ── Модалка ──────────────────────────────────── */
+.pricing-modal {
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    margin: 0 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(34, 211, 238, 0.04);
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.25s ease;
+}
+
+.pricing-overlay.pricing-open .pricing-modal {
+    transform: translateY(0) scale(1);
+}
+
+/* ── Заголовок модалки ────────────────────────── */
+.pricing-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.pricing-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.pricing-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.pricing-close:hover {
+    border-color: var(--border-light);
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+}
+
+/* ── Подзаголовок ─────────────────────────────── */
+.pricing-subtitle {
+    padding: 10px 22px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ── Таблица ──────────────────────────────────── */
+.pricing-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 22px 10px;
+}
+
+.pricing-table-wrap::-webkit-scrollbar {
+    width: 6px;
+}
+
+.pricing-table-wrap::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pricing-table-wrap::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 3px;
+}
+
+.pricing-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+}
+
+.pricing-table thead th {
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.64rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
+}
+
+.pricing-table thead th:not(:first-child) {
+    text-align: right;
+}
+
+.pricing-table tbody td {
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(37, 49, 71, 0.4);
+    vertical-align: middle;
+}
+
+.pricing-table tbody tr:hover {
+    background: rgba(30, 41, 59, 0.3);
+}
+
+.pricing-table .pricing-model-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.pricing-model-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.pricing-table .pricing-input-cell {
+    text-align: right;
+}
+
+/* ── Инпуты ───────────────────────────────────── */
+.pricing-input {
+    width: 72px;
+    padding: 5px 8px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -moz-appearance: textfield;
+}
+
+.pricing-input::-webkit-inner-spin-button,
+.pricing-input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+.pricing-input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.12);
+}
+
+/* Модели с нулевыми ценами — подсветка */
+.pricing-input.pricing-input-zero {
+    border-color: rgba(251, 191, 36, 0.4);
+    background: rgba(251, 191, 36, 0.04);
+}
+
+.pricing-input.pricing-input-zero:focus {
+    border-color: var(--accent-amber);
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.12);
+}
+
+/* ── Футер модалки ────────────────────────────── */
+.pricing-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 22px 18px;
+    border-top: 1px solid var(--border-light);
+}
+
+.pricing-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    border: 1px solid;
+}
+
+.pricing-btn:active {
+    transform: scale(0.97);
+}
+
+.pricing-btn-cancel {
+    background: var(--bg-elevated);
+    border-color: var(--border-light);
+    color: var(--text-secondary);
+}
+
+.pricing-btn-cancel:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+.pricing-btn-save {
+    background: rgba(52, 211, 153, 0.1);
+    border-color: var(--accent-emerald);
+    color: var(--accent-emerald);
+}
+
+.pricing-btn-save:hover {
+    background: rgba(52, 211, 153, 0.18);
+    box-shadow: 0 0 14px rgba(52, 211, 153, 0.1);
+}

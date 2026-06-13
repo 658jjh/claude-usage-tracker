@@ -4,7 +4,7 @@ import { initChartDefaults } from './config/chart-config.js';
 import { formatNumber } from './utils/formatters.js';
 import { getWeekStart, getWeekEnd, formatWeekLabel } from './utils/date-utils.js';
 import { sourceClass } from './utils/class-utils.js';
-import { getModelInfo } from './utils/model-utils.js';
+import { getModelInfo, getPricingForModel } from './utils/model-utils.js';
 
 import { initCounterAnimations } from './components/animations.js';
 import { initCharts, clearDayFilter } from './components/charts.js';
@@ -33,6 +33,7 @@ import {
     mergeSessions,
     recalcSummary
 } from './components/data-transfer.js';
+import { initPricingEditor } from './components/pricing-editor.js';
 
 let allSessionsData = [];
 let totalSessionCount = 0;
@@ -137,6 +138,22 @@ async function loadData() {
             .map(s => s.provider ? s : { ...s, provider: 'codex' });
         const allSessions = [...claudeAll, ...codexAll];
 
+        // Пересчёт стоимости если есть сохранённые пользовательские цены
+        try {
+            const savedPricing = localStorage.getItem('ai-usage-tracker-pricing');
+            if (savedPricing) {
+                const customPricing = JSON.parse(savedPricing);
+                window.__PRICING__ = { ...(window.__PRICING__ || {}), ...customPricing };
+                for (const s of allSessions) {
+                    const p = getPricingForModel(s.model);
+                    s.cost = ((s.input_tokens || 0) * p.input +
+                              (s.output_tokens || 0) * p.output +
+                              (s.cache_read || 0) * p.cacheRead +
+                              (s.cache_write || 0) * p.cacheWrite) / 1000000;
+                }
+            }
+        } catch { /* игнорируем */ }
+
         document.getElementById('total-since').textContent = formatSinceLabel(allSessions);
 
         const thisWeekStart = getWeekStart(summary.today);
@@ -210,6 +227,7 @@ async function loadData() {
 
         initKeyboardShortcuts(toggleAllForCurrentView);
         setupSessionViewToggle();
+        initPricingEditor(allSessions);
 
     } catch (error) {
         console.error('Error loading data:', error);
@@ -351,6 +369,11 @@ function init() {
     loadData();
     initReloadButton();
     initDataTransfer();
+
+    // Перерисовка дашборда при изменении цен через pricing editor
+    window.addEventListener('pricing-updated', () => {
+        location.reload();
+    });
 }
 
 if (document.readyState === 'loading') {

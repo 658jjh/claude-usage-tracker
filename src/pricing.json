@@ -1,0 +1,30 @@
+{
+  "_comment": "Цены за 1M токенов в USD. Редактируйте вручную или через UI дашборда. Модели с ценами 0 — неизвестные, заполните сами.",
+  "glm-5.1": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0,
+    "display": "GLM 5.1",
+    "family": "GLM",
+    "color": "#f59e0b"
+  },
+  "glm-4.5-air": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0,
+    "display": "GLM-4.5-AIR",
+    "family": "GLM",
+    "color": "#f59e0b"
+  },
+  "glm-4.7": {
+    "input": 0,
+    "output": 0,
+    "cacheWrite": 0,
+    "cacheRead": 0,
+    "display": "GLM-4.7",
+    "family": "GLM",
+    "color": "#f59e0b"
+  }
+}

@@ -48,6 +48,16 @@ export function getPricingForModel(model) {
     if (m.includes('haiku-3') || m.includes('haiku'))
         return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheRead: 0.03 };
 
+    // GLM-модели — цены берутся из pricing.json (через window.__PRICING__) или 0
+    if (m.includes('glm')) {
+        try {
+            const customPricing = window.__PRICING__ || {};
+            const match = Object.keys(customPricing).find(k => m.includes(k.toLowerCase().replace(/-/g, '.')) || m.includes(k.toLowerCase()));
+            if (match) return { input: customPricing[match].input || 0, output: customPricing[match].output || 0, cacheWrite: customPricing[match].cacheWrite || 0, cacheRead: customPricing[match].cacheRead || 0 };
+        } catch {}
+        return { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 };
+    }
+
     return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
 }
 
@@ -117,6 +127,10 @@ export function getModelInfo(model) {
     if (m.includes('claude-1')) return { name: 'Claude 1', cls: 'model-sonnet' };
     if (m.includes('instant')) return { name: 'Instant', cls: 'model-haiku' };
 
+    // GLM-модели
+    if (m.includes('glm-5-1') || m.includes('glm-5.1')) return { name: 'GLM 5.1', cls: 'model-glm' };
+    if (m.includes('glm')) return { name: model.toUpperCase(), cls: 'model-glm' };
+
     return { name: model, cls: 'model-sonnet' };
 }
 
@@ -128,5 +142,6 @@ export function getModelFamily(model) {
     if (m.includes('haiku')) return 'Haiku';
     if (m.includes('codex')) return 'Codex';
     if (m.startsWith('gpt-')) return 'GPT';
+    if (m.includes('glm')) return 'GLM';
     return 'Unknown';
 }

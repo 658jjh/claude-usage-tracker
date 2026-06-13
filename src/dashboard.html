@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="css/components/footer.css">
     <link rel="stylesheet" href="css/components/reload-fab.css">
     <link rel="stylesheet" href="css/components/data-transfer.css">
+    <link rel="stylesheet" href="css/components/pricing-editor.css">
 
     <!-- Utilities -->
     <link rel="stylesheet" href="css/utilities.css">
@@ -59,6 +60,10 @@
                     <button class="dt-btn dt-btn-import" id="dt-import-btn" type="button" title="Import data from another device">
                         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         Import
+                    </button>
+                    <button class="dt-btn dt-btn-pricing" id="pricing-btn" type="button" title="Edit model pricing">
+                        <svg viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+                        Pricing
                     </button>
                 </div>
             </div>
@@ -290,6 +295,24 @@
         </svg>
         <span class="fab-tip">Refresh Data <span class="kbd">&#8984;R</span></span>
     </button>
+
+    <script src="data/data.js"></script>
+
+    <!-- Pricing Editor Modal -->
+    <div class="pricing-overlay" id="pricing-overlay">
+        <div class="pricing-modal">
+            <div class="pricing-header">
+                <h2>Model Pricing</h2>
+                <button class="pricing-close" id="pricing-close" type="button">&times;</button>
+            </div>
+            <p class="pricing-subtitle">Prices per 1M tokens (USD). Models with empty prices use fallback values.</p>
+            <div class="pricing-table-wrap" id="pricing-table-wrap"></div>
+            <div class="pricing-footer">
+                <button class="pricing-btn pricing-btn-cancel" id="pricing-cancel" type="button">Cancel</button>
+                <button class="pricing-btn pricing-btn-save" id="pricing-save" type="button">Save &amp; Recalculate</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 </body>

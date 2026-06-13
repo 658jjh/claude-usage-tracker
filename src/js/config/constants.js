@@ -30,6 +30,7 @@ export const modelColorMap = {
     'gpt-5.4-mini': '#84cc16',
     'gpt-5.3-codex': '#0ea5e9',
     'gpt-5.2': '#14b8a6',
+    'GLM': '#f59e0b',
 };
 
 // Monday → Sunday (ISO week).
