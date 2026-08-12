@@ -57,44 +57,87 @@ function parseTimestamp(ts) {
   return null;
 }
 
+// Normalize `4.5`, `4_5` and `4-5` to a single form so each rule needs only one spelling.
+const normalizeModel = (model) => model.toLowerCase().replace(/[._]/g, '-');
+
+// Anthropic USD per 1M tokens — platform.claude.com/docs/en/about-claude/pricing
+// (verified 2026-08-13). cacheWrite is the 5-minute write (1.25x input); cacheRead
+// is a cache hit (0.1x input). Keep in sync with src/js/utils/model-utils.js.
 function getPricing(model) {
   if (!model) return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
-  const m = model.toLowerCase();
-  if (m.includes('opus-5'))
-    return { input: 20, output: 100, cacheWrite: 25, cacheRead: 2.0 };
-  if (m.includes('opus-4-5') || m.includes('opus-4.5') || m.includes('opus-4-6') || m.includes('opus-4.6') || m.includes('opus-4-7') || m.includes('opus-4.7') || m.includes('opus-4-8') || m.includes('opus-4.8') || m.includes('opus-4-9') || m.includes('opus-4.9'))
-    return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
-  if (m.includes('opus-4-1') || m.includes('opus-4.1'))
+  const m = normalizeModel(model);
+
+  if (m.includes('fable') || m.includes('mythos'))
+    return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 1.00 };
+
+  // Claude 3.x puts the version before the family name.
+  if (m.includes('3-opus'))
     return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };
-  if (m.includes('opus'))
-    return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };
-  if (m.includes('sonnet'))
+  if (m.includes('3-7-sonnet') || m.includes('3-5-sonnet') || m.includes('3-sonnet'))
     return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
-  if (m.includes('haiku-4-5') || m.includes('haiku-4.5'))
-    return { input: 1, output: 5, cacheWrite: 1.25, cacheRead: 0.10 };
-  if (m.includes('haiku'))
+  if (m.includes('3-5-haiku'))
+    return { input: 0.80, output: 4, cacheWrite: 1.00, cacheRead: 0.08 };
+  if (m.includes('3-haiku'))
     return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheRead: 0.03 };
+
+  // Opus 4.5 and later dropped to $5/$25; Opus 4.0/4.1 stayed at $15/$75.
+  if (/opus-4-[5-9]/.test(m))
+    return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
+  if (m.includes('opus-4'))
+    return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };
+  if (m.includes('opus')) // Opus 5 and later
+    return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
+
+  // Sonnet 5 cut the rate to $2/$10; Sonnet 4.x and earlier are $3/$15.
+  if (m.includes('sonnet-4') || m.includes('sonnet-3'))
+    return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
+  if (m.includes('sonnet')) // Sonnet 5 and later
+    return { input: 2, output: 10, cacheWrite: 2.50, cacheRead: 0.20 };
+
+  if (m.includes('haiku-3-5'))
+    return { input: 0.80, output: 4, cacheWrite: 1.00, cacheRead: 0.08 };
+  if (m.includes('haiku-3'))
+    return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheRead: 0.03 };
+  if (m.includes('haiku')) // Haiku 4.5 and later
+    return { input: 1, output: 5, cacheWrite: 1.25, cacheRead: 0.10 };
+
+  process.stderr.write(`[collect-usage] Unknown Claude model "${model}" — using Sonnet 4.6 pricing\n`);
   return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
 }
 
-// OpenAI API standard USD per 1M tokens. cacheWrite is 0 (no equivalent).
+// OpenAI USD per 1M tokens — developers.openai.com/api/docs/pricing (verified
+// 2026-08-13). cacheWrite is 0; OpenAI doesn't bill for cache writes.
 function getCodexPricing(model) {
-  if (!model) return { input: 2.5, output: 15, cacheWrite: 0, cacheRead: 0.25 };
-  const m = model.toLowerCase().replace(/_/g, '-');
-  if (m.includes('gpt-5-5') || m.includes('gpt-5.5'))
-    return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
-  if (m.includes('gpt-5-4-mini') || m.includes('gpt-5.4-mini'))
-    return { input: 0.75, output: 4.50, cacheWrite: 0, cacheRead: 0.075 };
-  if (m.includes('gpt-5-4') || m.includes('gpt-5.4'))
-    return { input: 2.50, output: 15.00, cacheWrite: 0, cacheRead: 0.25 };
-  if (m.includes('gpt-5-3-codex') || m.includes('gpt-5.3-codex'))
-    return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 };
-  if (m.includes('gpt-5-2') || m.includes('gpt-5.2'))
-    return { input: 2.00, output: 10.00, cacheWrite: 0, cacheRead: 0.20 };
-  if (m.startsWith('gpt-') || m.includes('codex')) {
-    process.stderr.write(`[collect-usage] Unknown Codex model "${model}" — using gpt-5.4 pricing\n`);
-  }
-  return { input: 2.50, output: 15.00, cacheWrite: 0, cacheRead: 0.25 };
+  if (!model) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+  const m = normalizeModel(model);
+
+  if (m.includes('gpt-5-6-sol')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+  if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 0, cacheRead: 0.20 };
+  if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0, cacheRead: 0.02 };
+
+  if (m.includes('gpt-5-5-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
+  if (m.includes('gpt-5-5')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+
+  if (m.includes('gpt-5-4-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
+  if (m.includes('gpt-5-4-nano')) return { input: 0.20, output: 1.25, cacheWrite: 0, cacheRead: 0.02 };
+  if (m.includes('gpt-5-4-mini')) return { input: 0.75, output: 4.50, cacheWrite: 0, cacheRead: 0.075 };
+  if (m.includes('gpt-5-4')) return { input: 2.50, output: 15.00, cacheWrite: 0, cacheRead: 0.25 };
+
+  if (m.includes('gpt-5-3-codex')) return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 };
+
+  if (m.includes('gpt-5-2-pro')) return { input: 21.00, output: 168.00, cacheWrite: 0, cacheRead: 0 };
+  if (m.includes('gpt-5-2')) return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 };
+
+  if (m.includes('gpt-5-mini')) return { input: 0.25, output: 2.00, cacheWrite: 0, cacheRead: 0.025 };
+  if (m.includes('gpt-5-nano')) return { input: 0.05, output: 0.40, cacheWrite: 0, cacheRead: 0.005 };
+
+  // Unknown variant — price by suffix tier, then fall back to the flagship rate.
+  if (m.includes('-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
+  if (m.includes('-nano')) return { input: 0.20, output: 1.25, cacheWrite: 0, cacheRead: 0.02 };
+  if (m.includes('-mini')) return { input: 0.75, output: 4.50, cacheWrite: 0, cacheRead: 0.075 };
+
+  process.stderr.write(`[collect-usage] Unknown Codex model "${model}" — using flagship (gpt-5.5) pricing\n`);
+  return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
 }
 
 function findJsonl(dir, maxDepth = 10) {
