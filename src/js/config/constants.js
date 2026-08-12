@@ -18,6 +18,7 @@ export const sourceColors = {
 export const defaultColors = ['#34d399', '#fb7185', '#a78bfa', '#f472b6', '#2dd4bf'];
 
 export const modelColorMap = {
+    'Fable': '#f0abfc',
     'Opus': '#fb7185',
     'Sonnet': '#60a5fa',
     'Haiku': '#34d399',
@@ -25,6 +26,9 @@ export const modelColorMap = {
     'GPT': '#10a37f',
     'GPT-5': '#10a37f',
     'Codex': '#22c55e',
+    'gpt-5.6-sol': '#10a37f',
+    'gpt-5.6-terra': '#14b8a6',
+    'gpt-5.6-luna': '#84cc16',
     'gpt-5.5': '#10a37f',
     'gpt-5.4': '#22c55e',
     'gpt-5.4-mini': '#84cc16',

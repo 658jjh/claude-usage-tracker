@@ -17,6 +17,7 @@ let allSessionsRef = [];
 let chartDaysRef = [];
 
 const modelColorMap = {
+    'Fable': '#f0abfc',
     'Opus': '#fb7185',
     'Sonnet': '#60a5fa',
     'Haiku': '#34d399',

@@ -73,6 +73,12 @@
     letter-spacing: 0.03em;
 }
 
+.model-fable {
+    background: rgba(240, 171, 252, 0.12);
+    color: #f0abfc;
+    border: 1px solid rgba(240, 171, 252, 0.25);
+}
+
 .model-opus {
     background: var(--accent-violet-dim);
     color: var(--accent-violet);

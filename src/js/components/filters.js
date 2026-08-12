@@ -32,8 +32,8 @@ export function initFilterDropdowns(sessions) {
     });
     const modelEntries = Object.entries(modelMap).sort((a, b) => {
         const order = {
-            'model-opus': 0, 'model-sonnet': 1, 'model-haiku': 2,
-            'model-gpt-frontier': 3, 'model-gpt-mini': 4, 'model-codex': 5,
+            'model-fable': 0, 'model-opus': 1, 'model-sonnet': 2, 'model-haiku': 3,
+            'model-gpt-frontier': 4, 'model-gpt-mini': 5, 'model-codex': 6,
         };
         const aOrder = order[a[1].cls] ?? 9;
         const bOrder = order[b[1].cls] ?? 9;
