@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Medium draft — Meta Built a Leaderboard for Burning AI Tokens</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: Charter, Georgia, 'Times New Roman', serif;
+    max-width: 42rem; margin: 0 auto; padding: 5rem 1.25rem 8rem;
+    line-height: 1.7; font-size: 1.25rem; color: #16181d; background: #fff;
+  }
+  @media (prefers-color-scheme: dark) { body { background:#0f1115; color:#e6e8ec; } }
+  h1 { font-size: 2.4rem; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 1rem; }
+  h2 { font-size: 1.55rem; line-height: 1.3; letter-spacing: -.01em; margin: 3rem 0 1rem; }
+  h3.sub { font-size: 1.35rem; font-weight: 400; opacity: .68; margin: 0 0 2.5rem; line-height:1.4; }
+  p, li { margin: 0 0 1.35rem; }
+  ul { padding-left: 1.4rem; }
+  li { margin-bottom: .8rem; }
+  a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  hr { border: 0; border-top: 1px solid rgba(128,128,128,.28); margin: 3rem 0; }
+  strong { font-weight: 700; }
+  em { font-style: italic; }
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; padding: .7rem 1.25rem;
+    background: #16181d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: .85rem; display: flex; gap: .75rem; align-items: center; z-index: 10;
+  }
+  .toolbar button {
+    font: inherit; font-weight: 600; padding: .45rem .9rem; border-radius: 6px;
+    border: 0; background: #22c55e; color: #06210f; cursor: pointer;
+  }
+  .toolbar button:active { transform: translateY(1px); }
+  .toolbar span { opacity: .72; }
+  .sources { font-size: 1rem; opacity: .8; }
+  .sources li { margin-bottom: .45rem; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <button id="copyBtn">Copy post</button>
+  <span id="hint">Copies with formatting — paste straight into the Medium editor (⌘V).</span>
+</div>
+
+<article id="post">
+
+<h1>Meta Built a Leaderboard for Burning AI Tokens. You Still Don't Know Your Own Number.</h1>
+
+<h3 class="sub">Tokenmaxxing is a bad metric. Refusing to measure anything is worse.</h3>
+
+<p>In April, someone at Meta shipped an internal dashboard called <strong>Claudeonomics</strong>. It ranked employees by how many AI tokens they consumed. Top burners collected titles: <em>Token Legend</em>, <em>Cache Wizard</em>.</p>
+
+<p>The numbers that leaked were hard to read with a straight face. Sixty trillion tokens across the company in thirty days. The highest-ranked individual averaged 281 billion tokens in that window, which <a href="https://fortune.com/2026/04/09/meta-killed-employee-ai-token-dashboard/">Fortune</a> put at roughly $1.4 million even on the cheapest Claude tier. Mark Zuckerberg didn't crack the top 250. Neither did CTO Andrew Bosworth.</p>
+
+<p>Then the data got passed around outside the company, and the dashboard was gone within days. The shutdown notice read: <em>"It was meant to be a fun way for people to look at tokens, but due to data from this dashboard being shared externally, we've made the decision to shutter Claudeonomics for now."</em></p>
+
+<p>Most people read this as a story about corporate absurdity. Engineers were reportedly leaving models running idle to climb the board, which is funny in the way that lines-of-code contests were funny in 1998.</p>
+
+<p>I think the more interesting part got missed. Eighty-five thousand people at Meta could look up exactly what they consumed last month. Most developers reading this cannot answer that question about themselves.</p>
+
+<p>That asymmetry is the story.</p>
+
+<hr />
+
+<h2>The pendulum swung twice in six months</h2>
+
+<p>Nvidia's Jensen Huang is widely credited with lighting the fuse, saying he'd be <em>deeply alarmed</em> if a $500,000 engineer hadn't spent $200,000 on tokens. The logic is clean enough: compute is cheaper than payroll, so an engineer hoarding compute is an engineer wasting the expensive resource to conserve the cheap one.</p>
+
+<p>That idea moved fast. Internal leaderboards appeared. Consumption became a signal of seriousness.</p>
+
+<p>Then the bills arrived.</p>
+
+<p>Uber burned through its <strong>entire 2026 budget</strong> for agentic coding tools in four months. CTO Praveen Neppalli Naga said so publicly. Around 5,000 engineers were running at 84–95% monthly usage, with individual bills landing anywhere from $150 to $2,000 a month. Neppalli reportedly went through $1,200 of tokens during a two-hour internal demo.</p>
+
+<p>Uber's response was a <strong>$1,500 monthly cap per engineer, per tool</strong>. As <a href="https://simonwillison.net/2026/Jun/3/uber-caps-usage/">Simon Willison noted</a>, for a company where median SWE compensation runs around $330,000, a $36,000 annual ceiling across two tools is not stingy. It's a real number attached to a real belief about value.</p>
+
+<p>Six months. From <em>burn more</em> to <em>here's your ceiling</em>. Meta went from gamifying consumption to <a href="https://cryptobriefing.com/meta-crackdown-employee-token-use/">capping it</a> as internal costs climbed toward the billions.</p>
+
+<p>If your read on this industry is that the free-money phase of agentic coding is winding down, you're reading it correctly.</p>
+
+<hr />
+
+<h2>Tokenmaxxing earned its backlash</h2>
+
+<p>The metric deserves to die, and the data is not subtle about why.</p>
+
+<p><a href="https://www.faros.ai/blog/tokenmaxxing">Faros AI</a> analyzed two years of activity from 22,000 developers across 4,000 teams. In high-adoption environments, throughput genuinely improved: tasks completed up 34%, epics per developer up 66%.</p>
+
+<p>Then the other column:</p>
+
+<ul>
+  <li>Bugs per developer: <strong>up 54%</strong></li>
+  <li>Median review time: <strong>up 5x</strong></li>
+  <li>PRs merged without review: <strong>up 31%</strong></li>
+  <li>Code churn: <strong>up 861%</strong></li>
+</ul>
+
+<p>Incident-to-PR ratio more than tripled. More things shipped. Fewer of them survived contact with production.</p>
+
+<p>Token consumption is an input. Ranking people on inputs corrupts them, every time, without exception. We learned this with lines of code, with commit counts, with story points. Anyone who has watched a team optimize for a number they didn't choose already knows how the Meta idle-model story ends.</p>
+
+<p>So: leaderboards are bad. Manager-visible consumption rankings are worse. Zapier reportedly investigates employees whose usage runs 5x their peers, which is defensible as anomaly detection and indefensible the moment it lands in a calibration packet.</p>
+
+<p>Fine. That's the easy consensus, and by now it's most of what gets written about this.</p>
+
+<hr />
+
+<h2>"Stop measuring" is the wrong lesson</h2>
+
+<p>Here's where I expect to lose some of you.</p>
+
+<p>The backlash has curdled into something lazier than the original mistake. <em>Tokens don't measure productivity, therefore stop looking at tokens.</em> That conclusion does not follow, and it leaves you standing outside a conversation that's already happening about you.</p>
+
+<p>On June 24, <a href="https://www.gartner.com/en/newsroom/press-releases/2026-06-24-gartner-predicts-ai-coding-costs-will-surpass-average-developer-salary-by-2028-as-token-consumption-surges">Gartner predicted</a> that AI coding costs will surpass the average developer's salary by 2028. That's against a global average of roughly $2,000/month, not a Bay Area number, but the direction is what matters. Today, about a quarter of technology leaders already spend $200–500 per developer per month on tokens. Roughly 6% are past $2,000.</p>
+
+<p>And the economics are genuinely strange. Per-token prices have collapsed. Blended cost fell from about $18.40 to $6.07 per million tokens between Q1 2025 and Q1 2026, a 67% drop in a year. Enterprise AI bills over the same period rose by an estimated 320%, because agentic workflows pushed per-developer consumption up something like 18x. A single agentic task can trigger dozens of model calls. The unit got cheap and the units-per-task went vertical.</p>
+
+<p>Every finance org on earth is now looking at that line. In 2025, 31% of FinOps practitioners had AI spend in scope. In 2026 it's basically all of them.</p>
+
+<p>So the question was never <em>should token consumption be measured.</em> It's being measured. Uber gives every employee a dashboard and a formal process to request more. Meta ranked 85,000 people. The question is narrower and more uncomfortable:</p>
+
+<p><strong>Does the number reach you before it reaches someone else?</strong></p>
+
+<hr />
+
+<h2>The asymmetry</h2>
+
+<p>Three situations, all of which are already happening:</p>
+
+<p><strong>Your team gets a cap.</strong> A per-engineer ceiling shows up in Slack. You have no idea whether it's generous or crippling for how you actually work, because you've never seen your own monthly figure. You either accept a bad constraint quietly or argue from vibes. The person who shows up with twelve months of their own data wins that conversation and it isn't close.</p>
+
+<p><strong>Your usage gets flagged.</strong> You're 5x your peers. Maybe that's waste. Maybe you're the one person running large refactors across a legacy service while everyone else writes CRUD endpoints. Without your own breakdown by project, by model, by session, you cannot tell the difference, and neither can the person reviewing you.</p>
+
+<p><strong>Nobody flags anything, and you're just spending badly.</strong> This is the common one and it's the least discussed. You have a session that quietly cost more than your entire previous week. You have a project where the agent loops on a problem it will not solve. You're on Opus for work Haiku would handle. Nobody is going to find that for you.</p>
+
+<p>The Meta leaderboard was a genuinely dumb idea. But notice what the alternative has been for most developers: no number at all, until one arrives from above with a policy attached.</p>
+
+<p>I'd rather be the one holding the data.</p>
+
+<hr />
+
+<h2>What's actually worth looking at</h2>
+
+<p>Consumption alone tells you nothing. Consumption in context tells you a lot. What I've found worth watching:</p>
+
+<ul>
+  <li><strong>Cost per project, not cost per day.</strong> Aggregate spend is noise. Spend attached to a working directory tells you which codebase is expensive to change, and that's an architecture signal, not an AI signal.</li>
+  <li><strong>Your model mix.</strong> Cache read and write ratios especially. Most surprise bills I've seen trace back to cache behavior nobody was looking at.</li>
+  <li><strong>The outlier session.</strong> Not the average. The single most expensive session of the month, opened up and read. There's usually a specific bad pattern in there.</li>
+  <li><strong>When you spend.</strong> Hour-by-hour, the expensive hours are frequently not the productive ones. Late-night sessions where you're steering badly are visible in the data before they're visible to you.</li>
+  <li><strong>Trend against shipped work.</strong> The only ratio that means anything. Rising spend with rising throughput is an investment. Rising spend with flat throughput is churn, and per the Faros numbers, churn is what's actually rising.</li>
+</ul>
+
+<p>Measure spend against outcomes. Never rank humans on inputs. Those two things are compatible, and the current discourse treats them as if they're not.</p>
+
+<hr />
+
+<h2>Disclosure, because it matters here</h2>
+
+<p>I build a tool in this space, so read the rest with that in mind.</p>
+
+<p>It's called <a href="https://github.com/658jjh/claude-usage-tracker">AI Usage Tracker</a>. It scans the local data directories that Claude Code, Codex, Cursor, Windsurf, Cline, Aider, Continue and a handful of others already write to your disk, parses the JSONL, applies per-model pricing, and renders it as a dashboard. Cost by project, by model, by source. Token breakdown including cache reads, cache writes and Codex reasoning tokens. An hour-by-day heatmap. Your most expensive session, one click away.</p>
+
+<p>The part I care about: <strong>it never sends anything anywhere.</strong> No cloud, no account, no telemetry. It reads files that are already on your machine and renders them in a window on that same machine. There is no server for me to run and no data for me to have.</p>
+
+<p>That's a deliberate position, not a shortcut. Every well-funded product in this category is a dashboard your employer buys and points at you. This one is the opposite artifact: the same visibility, owned by the person generating the tokens. Source is MIT on GitHub. Build it yourself in one command, or pay $9 for a signed macOS build if you'd rather not.</p>
+
+<p>If you don't want my tool, use someone else's, or write forty lines of Python against <code>~/.claude/projects</code>. The tool is not the argument.</p>
+
+<hr />
+
+<h2>The number is going to exist either way</h2>
+
+<p>Meta's mistake wasn't building a dashboard. It was building a <em>leaderboard</em> — turning a personal operating metric into a public ranking, then acting surprised when people optimized for the ranking.</p>
+
+<p>But the correction isn't blindness. Between now and 2028, per-developer AI cost goes from a line item to a number that shows up in headcount conversations. Caps are coming to your team if they haven't arrived. Some of that will be reasonable and some of it will be set by people who have never watched an agent burn $40 failing to fix a flaky test.</p>
+
+<p>When that lands, there will be a number attached to your name.</p>
+
+<p>The only real choice is whether you've seen it first.</p>
+
+<hr />
+
+<p><em>What does your team do about token spend — caps, dashboards, or deliberately not looking? I'm genuinely interested in the third answer, since it seems to be the most common one nobody admits to.</em></p>
+
+<hr />
+
+<p><strong>Sources</strong></p>
+
+<ul class="sources">
+  <li><a href="https://fortune.com/2026/04/09/meta-killed-employee-ai-token-dashboard/">Fortune — Meta killed the employee AI token dashboard</a></li>
+  <li><a href="https://www.gartner.com/en/newsroom/press-releases/2026-06-24-gartner-predicts-ai-coding-costs-will-surpass-average-developer-salary-by-2028-as-token-consumption-surges">Gartner — AI coding costs will surpass average developer salary by 2028</a></li>
+  <li><a href="https://simonwillison.net/2026/Jun/3/uber-caps-usage/">Simon Willison — Uber caps usage of AI tools like Claude Code</a></li>
+  <li><a href="https://www.faros.ai/blog/tokenmaxxing">Faros AI — Tokenmaxxing: why token consumption isn't engineering productivity</a></li>
+  <li><a href="https://www.theregister.com/ai-and-ml/2026/06/24/ai-coding-agents-could-soon-cost-more-than-the-developers-using-them/5260864">The Register — AI coding agents could soon cost more than the developers using them</a></li>
+  <li><a href="https://leaddev.com/ai/tokenmaxxing-and-the-search-for-ai-metrics-that-matter">LeadDev — Tokenmaxxing and the search for AI metrics that matter</a></li>
+  <li><a href="https://www.inc.com/lucia-auerbach/uber-blew-through-2026-ai-budget-in-four-months-now-it-is-capping-employee-use/91355199">Inc. — Uber blew through its 2026 AI budget in four months</a></li>
+</ul>
+
+</article>
+
+<script>
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const article = document.getElementById('post');
+    const hint = document.getElementById('hint');
+    try {
+      const html = article.innerHTML;
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], {type: 'text/html'}),
+        'text/plain': new Blob([article.innerText], {type: 'text/plain'})
+      })]);
+      hint.textContent = 'Copied with formatting. Paste into the Medium editor now.';
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(article);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      document.execCommand('copy');
+      hint.textContent = 'Selected and copied — paste into Medium (⌘V).';
+    }
+  });
+</script>
+
+</body>
+</html>
