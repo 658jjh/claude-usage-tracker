@@ -78,6 +78,10 @@
     border-radius: var(--radius-pill);
 }
 
+.chart-metric-control {
+    border-color: rgba(167, 139, 250, 0.24);
+}
+
 .chart-range-btn {
     min-height: 40px;
     padding: 5px 10px;
@@ -207,8 +211,9 @@
 
     .chart-heading-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 8px;
+        flex-wrap: wrap;
     }
 
     .chart-range-control {
@@ -222,5 +227,6 @@
 
     .chart-hint {
         font-size: 0.56rem;
+        margin-left: auto;
     }
 }

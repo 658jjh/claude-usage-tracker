@@ -17,6 +17,7 @@ let selectedDayIndex = null;
 let allSessionsRef = [];
 let chartDaysRef = [];
 let selectedRange = 'month';
+let selectedMetric = 'cost';
 let chartToday = null;
 
 const modelColorMap = {
@@ -140,6 +141,7 @@ export function initCharts(allSessions, today = null) {
     allSessionsRef = allSessions;
     chartToday = today || window.__SUMMARY__?.today || new Date().toISOString().slice(0, 10);
     syncRangeControl();
+    syncMetricControl();
 
     const rangeSessions = getRangeSessions(allSessions);
     buildDailyChart(rangeSessions);
@@ -184,12 +186,49 @@ function syncRangeControl() {
     });
 }
 
+function getMetricValue(session) {
+    if (selectedMetric === 'tokens') {
+        return (session.input_tokens || 0) + (session.output_tokens || 0);
+    }
+    return session.cost || 0;
+}
+
+function formatMetricValue(value) {
+    if (selectedMetric === 'tokens') {
+        if (value >= 1000000) return (value / 1000000).toFixed(value >= 10000000 ? 0 : 1) + 'M';
+        if (value >= 1000) return (value / 1000).toFixed(value >= 100000 ? 0 : 1) + 'K';
+        return Math.round(value).toLocaleString('en-US');
+    }
+    return '$' + value.toFixed(2);
+}
+
+function syncMetricControl() {
+    const control = document.getElementById('chart-metric-control');
+    if (!control) return;
+    control.querySelectorAll('.chart-range-btn').forEach(button => {
+        const active = button.dataset.metric === selectedMetric;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+    if (control.dataset.bound === 'true') return;
+    control.dataset.bound = 'true';
+    control.addEventListener('click', event => {
+        const button = event.target.closest('.chart-range-btn');
+        if (!button || button.dataset.metric === selectedMetric) return;
+        selectedMetric = button.dataset.metric;
+        selectedDayIndex = null;
+        syncMetricControl();
+        buildDailyChart(getRangeSessions(allSessionsRef));
+        updateDayFilterBadge(null);
+    });
+}
+
 function buildDailyChart(allSessions) {
     const dailyBySource = {};
     const allSourcesSet = new Set();
     allSessions.forEach(s => {
         if (!dailyBySource[s.date]) dailyBySource[s.date] = {};
-        dailyBySource[s.date][s.source] = (dailyBySource[s.date][s.source] || 0) + s.cost;
+        dailyBySource[s.date][s.source] = (dailyBySource[s.date][s.source] || 0) + getMetricValue(s);
         allSourcesSet.add(s.source);
     });
     const chartDays = Object.keys(dailyBySource).sort();
@@ -252,11 +291,11 @@ function buildDailyChart(allSessions) {
                         title: (items) => items.length ? items[0].label : '',
                         label: (ctx) => {
                             if (ctx.raw === 0) return null;
-                            return ` ${ctx.dataset.label}: $${ctx.raw.toFixed(2)}`;
+                            return ` ${ctx.dataset.label}: ${formatMetricValue(ctx.raw)}`;
                         },
                         footer: (items) => {
                             const total = items.reduce((sum, item) => sum + item.raw, 0);
-                            return `  Total: $${total.toFixed(2)}`;
+                            return `  Total: ${formatMetricValue(total)}`;
                         }
                     }
                 }
@@ -280,7 +319,9 @@ function buildDailyChart(allSessions) {
                         drawBorder: false,
                     },
                     ticks: {
-                        callback: v => '$' + v.toFixed(0),
+                        callback: v => selectedMetric === 'tokens'
+                            ? formatMetricValue(v)
+                            : '$' + v.toFixed(0),
                         color: '#94a3b8',
                         font: { size: 9 },
                         padding: 6,
