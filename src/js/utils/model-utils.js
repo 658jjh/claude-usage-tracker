@@ -1,10 +1,12 @@
 // Per-million-token pricing in USD.
 //
-// Claude rates: platform.claude.com/docs/en/about-claude/pricing (verified 2026-08-13).
+// Claude rates: platform.claude.com/docs/en/about-claude/pricing (verified 2026-09-19).
 //   cacheWrite is the 5-minute write (1.25x input); cacheRead is a cache hit (0.1x input).
 //   The 1-hour write (2x input) is not tracked separately — transcripts don't record the TTL.
-// OpenAI rates: developers.openai.com/api/docs/pricing (verified 2026-08-13).
-//   cacheWrite is 0 — OpenAI doesn't bill for cache writes.
+//   Fable/Mythos 5.1 are an exception: cache hits are 0.025x input ($0.25/MTok).
+// OpenAI rates: developers.openai.com/api/docs/pricing (verified 2026-09-19).
+//   OpenAI cache writes are included for completeness; Codex transcripts expose cached
+//   input tokens but not cache-write tokens, so the collector only bills cache reads.
 //
 // Version-family fallbacks use *current* tier pricing, not an escalation curve: Anthropic's
 // per-token prices have trended down across releases (Opus 15 -> 5, Sonnet 3 -> 2), so an
@@ -21,6 +23,8 @@ export function getPricingForModel(model) {
     if (m.startsWith('gpt-') || m.includes('codex')) return getCodexPricing(m);
 
     // ── Claude: top tier ──────────────────────────────────────────────────
+    if (m.includes('fable-5-1') || m.includes('mythos-5-1') || m.includes('mythos-preview'))
+        return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 0.25 };
     if (m.includes('fable') || m.includes('mythos'))
         return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 1.00 };
 
@@ -62,9 +66,12 @@ export function getPricingForModel(model) {
 
 // `m` is already normalized by getPricingForModel.
 function getCodexPricing(m) {
-    if (m.includes('gpt-5-6-sol')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
-    if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 0, cacheRead: 0.20 };
-    if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0, cacheRead: 0.02 };
+    if (m.includes('gpt-6-astra')) return { input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 };
+    if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 2.50, cacheRead: 0.20 };
+    if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0.25, cacheRead: 0.02 };
+    if (m.includes('gpt-5-6-sol') || m === 'gpt-5-6' || m.startsWith('gpt-5-6-')) return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
+
+    if (m.includes('codex-mini-latest')) return { input: 1.50, output: 6.00, cacheWrite: 0, cacheRead: 0.375 };
 
     if (m.includes('gpt-5-5-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
     if (m.includes('gpt-5-5')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
@@ -95,15 +102,17 @@ export function getModelInfo(model) {
     const m = normalize(model);
 
     // ── OpenAI / Codex ────────────────────────────────────────────────────
-    if (m.includes('gpt-5-6-sol')) return { name: 'GPT-5.6 Sol', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-astra')) return { name: 'GPT-6 Astra', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-6-terra')) return { name: 'GPT-5.6 Terra', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-6-luna')) return { name: 'GPT-5.6 Luna', cls: 'model-gpt-mini' };
+    if (m.includes('gpt-5-6-sol') || m === 'gpt-5-6' || m.startsWith('gpt-5-6-')) return { name: 'GPT-5.6 Sol', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-5-pro')) return { name: 'GPT-5.5 Pro', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-5')) return { name: 'GPT-5.5', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-4-pro')) return { name: 'GPT-5.4 Pro', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-4-nano')) return { name: 'GPT-5.4 Nano', cls: 'model-gpt-mini' };
     if (m.includes('gpt-5-4-mini')) return { name: 'GPT-5.4 Mini', cls: 'model-gpt-mini' };
     if (m.includes('gpt-5-4')) return { name: 'GPT-5.4', cls: 'model-gpt-frontier' };
+    if (m.includes('codex-mini-latest')) return { name: 'Codex Mini Latest', cls: 'model-codex' };
     if (m.includes('gpt-5-3-codex')) return { name: 'GPT-5.3 Codex', cls: 'model-codex' };
     if (m.includes('gpt-5-2-pro')) return { name: 'GPT-5.2 Pro', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-5-2')) return { name: 'GPT-5.2', cls: 'model-gpt-frontier' };
@@ -114,7 +123,9 @@ export function getModelInfo(model) {
 
     // ── Claude top tier ───────────────────────────────────────────────────
     if (m.includes('mythos-preview')) return { name: 'Mythos Preview', cls: 'model-fable' };
+    if (m.includes('mythos-5-1')) return { name: 'Mythos 5.1', cls: 'model-fable' };
     if (m.includes('mythos')) return { name: 'Mythos 5', cls: 'model-fable' };
+    if (m.includes('fable-5-1')) return { name: 'Fable 5.1', cls: 'model-fable' };
     if (m.includes('fable')) return { name: 'Fable 5', cls: 'model-fable' };
 
     // ── Claude 3.x (version prefixes the family name) ─────────────────────

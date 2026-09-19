@@ -201,7 +201,7 @@ async function loadData() {
         updateFilterCount(allSessions.length, totalSessionCount);
 
         initChartDefaults();
-        initCharts(allSessions);
+        initCharts(allSessions, summary.today);
         initHeatmap(allSessions);
         initCounterAnimations();
 
@@ -306,7 +306,7 @@ function reRenderDashboard(summary, sessions) {
     initFilterDropdowns(sessions);
     getCurrentRenderer()(sessions);
     updateFilterCount(sessions.length, totalSessionCount);
-    initCharts(sessions);
+    initCharts(sessions, summary.today);
     initHeatmap(sessions);
 
     window._applyFiltersCallback = applyCurrentFilters;

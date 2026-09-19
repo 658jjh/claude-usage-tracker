@@ -6,6 +6,7 @@
  */
 
 import { getModelFamily } from '../utils/model-utils.js';
+import { getWeekStart } from '../utils/date-utils.js';
 
 let dailyChart = null;
 let sourceChart = null;
@@ -15,12 +16,16 @@ let modelChart = null;
 let selectedDayIndex = null;
 let allSessionsRef = [];
 let chartDaysRef = [];
+let selectedRange = 'month';
+let chartToday = null;
 
 const modelColorMap = {
     'Fable': '#f0abfc',
     'Opus': '#fb7185',
     'Sonnet': '#60a5fa',
     'Haiku': '#34d399',
+    'GPT': '#10a37f',
+    'Codex': '#22c55e',
     'Unknown': '#a78bfa',
 };
 
@@ -126,17 +131,57 @@ const legendConfig = {
     }
 };
 
-export function initCharts(allSessions) {
+export function initCharts(allSessions, today = null) {
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = 'rgba(30, 41, 59, 0.4)';
     Chart.defaults.font.family = "'JetBrains Mono', monospace";
     Chart.defaults.font.size = 10;
 
     allSessionsRef = allSessions;
+    chartToday = today || window.__SUMMARY__?.today || new Date().toISOString().slice(0, 10);
+    syncRangeControl();
 
-    buildDailyChart(allSessions);
-    buildSourceChart(allSessions);
-    buildModelChart(allSessions);
+    const rangeSessions = getRangeSessions(allSessions);
+    buildDailyChart(rangeSessions);
+    buildSourceChart(rangeSessions);
+    buildModelChart(rangeSessions);
+}
+
+function getRangeSessions(sessions) {
+    if (selectedRange === 'all') return sessions;
+    if (selectedRange === 'day') return sessions.filter(s => s.date === chartToday);
+    const end = new Date(chartToday + 'T00:00:00');
+    const start = selectedRange === 'week'
+        ? new Date(getWeekStart(chartToday) + 'T00:00:00')
+        : new Date(end);
+    if (selectedRange === 'month') start.setDate(1);
+    const startDate = start.toISOString().slice(0, 10);
+    const endDate = end.toISOString().slice(0, 10);
+    return sessions.filter(s => s.date >= startDate && s.date <= endDate);
+}
+
+function syncRangeControl() {
+    const control = document.getElementById('chart-range-control');
+    if (!control) return;
+    control.querySelectorAll('.chart-range-btn').forEach(button => {
+        const active = button.dataset.range === selectedRange;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+    if (control.dataset.bound === 'true') return;
+    control.dataset.bound = 'true';
+    control.addEventListener('click', event => {
+        const button = event.target.closest('.chart-range-btn');
+        if (!button || button.dataset.range === selectedRange) return;
+        selectedRange = button.dataset.range;
+        selectedDayIndex = null;
+        syncRangeControl();
+        const rangeSessions = getRangeSessions(allSessionsRef);
+        buildDailyChart(rangeSessions);
+        buildSourceChart(rangeSessions);
+        buildModelChart(rangeSessions);
+        updateDayFilterBadge(null);
+    });
 }
 
 function buildDailyChart(allSessions) {
@@ -147,7 +192,7 @@ function buildDailyChart(allSessions) {
         dailyBySource[s.date][s.source] = (dailyBySource[s.date][s.source] || 0) + s.cost;
         allSourcesSet.add(s.source);
     });
-    const chartDays = Object.keys(dailyBySource).sort().slice(-15);
+    const chartDays = Object.keys(dailyBySource).sort();
     chartDaysRef = chartDays;
     const allSources = Array.from(allSourcesSet);
 
@@ -246,13 +291,13 @@ function buildDailyChart(allSessions) {
         }
     });
 
-    canvas.addEventListener('click', e => {
+    canvas.onclick = e => {
         const elements = dailyChart.getElementsAtEventForMode(e, 'index', { intersect: false }, false);
         if (!elements.length) return;
         const idx = elements[0].index;
         selectedDayIndex = idx === selectedDayIndex ? null : idx;
         applyDaySelection();
-    });
+    };
 }
 
 // ─── Day Filter Logic ────────────────────────────────────────
@@ -272,9 +317,10 @@ function applyDaySelection() {
     });
     dailyChart.update('none');
 
+    const rangeSessions = getRangeSessions(allSessionsRef);
     const sessions = isFiltered
-        ? allSessionsRef.filter(s => s.date === chartDaysRef[selectedDayIndex])
-        : allSessionsRef;
+        ? rangeSessions.filter(s => s.date === chartDaysRef[selectedDayIndex])
+        : rangeSessions;
 
     const dateLabel = isFiltered ? dailyChart.data.labels[selectedDayIndex] : null;
 

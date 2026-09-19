@@ -61,12 +61,15 @@ function parseTimestamp(ts) {
 const normalizeModel = (model) => model.toLowerCase().replace(/[._]/g, '-');
 
 // Anthropic USD per 1M tokens — platform.claude.com/docs/en/about-claude/pricing
-// (verified 2026-08-13). cacheWrite is the 5-minute write (1.25x input); cacheRead
-// is a cache hit (0.1x input). Keep in sync with src/js/utils/model-utils.js.
+// (verified 2026-09-19). cacheWrite is the 5-minute write (1.25x input); cacheRead
+// is a cache hit (0.1x input), except Fable/Mythos 5.1 at 0.025x. Keep in sync
+// with src/js/utils/model-utils.js.
 function getPricing(model) {
   if (!model) return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
   const m = normalizeModel(model);
 
+  if (m.includes('fable-5-1') || m.includes('mythos-5-1') || m.includes('mythos-preview'))
+    return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 0.25 };
   if (m.includes('fable') || m.includes('mythos'))
     return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 1.00 };
 
@@ -106,14 +109,18 @@ function getPricing(model) {
 }
 
 // OpenAI USD per 1M tokens — developers.openai.com/api/docs/pricing (verified
-// 2026-08-13). cacheWrite is 0; OpenAI doesn't bill for cache writes.
+// 2026-09-19). Codex transcripts expose cached input tokens, not cache-write
+// tokens, so cacheWrite is retained for reference but is not used by this parser.
 function getCodexPricing(model) {
-  if (!model) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+  if (!model) return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
   const m = normalizeModel(model);
 
-  if (m.includes('gpt-5-6-sol')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
-  if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 0, cacheRead: 0.20 };
-  if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0, cacheRead: 0.02 };
+  if (m.includes('gpt-6-astra')) return { input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 };
+  if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 2.50, cacheRead: 0.20 };
+  if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0.25, cacheRead: 0.02 };
+  if (m.includes('gpt-5-6-sol') || m === 'gpt-5-6' || m.startsWith('gpt-5-6-')) return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
+
+  if (m.includes('codex-mini-latest')) return { input: 1.50, output: 6.00, cacheWrite: 0, cacheRead: 0.375 };
 
   if (m.includes('gpt-5-5-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
   if (m.includes('gpt-5-5')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
@@ -136,8 +143,8 @@ function getCodexPricing(model) {
   if (m.includes('-nano')) return { input: 0.20, output: 1.25, cacheWrite: 0, cacheRead: 0.02 };
   if (m.includes('-mini')) return { input: 0.75, output: 4.50, cacheWrite: 0, cacheRead: 0.075 };
 
-  process.stderr.write(`[collect-usage] Unknown Codex model "${model}" — using flagship (gpt-5.5) pricing\n`);
-  return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+  process.stderr.write(`[collect-usage] Unknown Codex model "${model}" — using GPT-5.6 Sol pricing\n`);
+  return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
 }
 
 function findJsonl(dir, maxDepth = 10) {

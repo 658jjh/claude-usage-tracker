@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/platform-macOS-a78bfa?style=flat-square" alt="Platform" />
   <img src="https://img.shields.io/badge/node-%E2%89%A516-22c55e?style=flat-square" alt="Node" />
   <img src="https://img.shields.io/github/downloads/658jjh/claude-usage-tracker/total?label=downloads&color=ec4899&style=flat-square" alt="Downloads" />
-  <img src="https://img.shields.io/badge/version-v3.0.1-f59e0b?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/version-v3.0.3-f59e0b?style=flat-square" alt="Version" />
   <a href="https://buy.polar.sh/polar_cl_1ljeQzFXHTipMnCtDF7Od6hFug67DBci8CToc083Wxj"><img src="https://img.shields.io/badge/premium_build-%249-22c55e?style=flat-square" alt="Premium Build" /></a>
 </p>
 
@@ -316,7 +316,7 @@ open http://localhost:8765/dashboard.html
 
 Costs are calculated using each provider's per-million-token pricing — Anthropic's published USD for Claude, OpenAI API standard USD for Codex. Totals stay comparable in a single dollar figure regardless of which provider you're viewing.
 
-<sub>Rates below verified 2026-08-13 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
+<sub>Rates below verified 2026-09-19 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
 
 ### Anthropic Claude
 
@@ -327,6 +327,13 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <th align="right">Output</th>
 <th align="right">Cache Write</th>
 <th align="right">Cache Read</th>
+</tr>
+<tr>
+<td>🟣 <strong>Fable 5.1 / Mythos 5.1</strong></td>
+<td align="right">$10.00</td>
+<td align="right">$50.00</td>
+<td align="right">$12.50</td>
+<td align="right">$0.25</td>
 </tr>
 <tr>
 <td>🟣 <strong>Fable 5 / Mythos 5</strong></td>
@@ -386,7 +393,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 </tr>
 </table>
 
-<sub>Cache Write is the 5-minute write (1.25× input). The 1-hour write (2× input) isn't tracked separately — transcripts don't record the cache TTL.</sub>
+<sub>Cache Write is the 5-minute write (1.25× input). The 1-hour write (2× input) isn't tracked separately — transcripts don't record the cache TTL. Fable/Mythos 5.1 cache reads are the documented 0.025× input exception.</sub>
 
 ### OpenAI Codex
 
@@ -398,10 +405,16 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <th align="right">Cache Read</th>
 </tr>
 <tr>
+<td>🟣 <strong>GPT-6 Astra</strong></td>
+<td align="right">$10.00</td>
+<td align="right">$50.00</td>
+<td align="right">$1.00</td>
+</tr>
+<tr>
 <td>🟢 <strong>GPT-5.6 Sol</strong></td>
-<td align="right">$5.00</td>
-<td align="right">$30.00</td>
-<td align="right">$0.50</td>
+<td align="right">$4.00</td>
+<td align="right">$20.00</td>
+<td align="right">$0.40</td>
 </tr>
 <tr>
 <td>🟢 <strong>GPT-5.6 Terra</strong></td>
@@ -446,6 +459,12 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$0.02</td>
 </tr>
 <tr>
+<td>🔵 <strong>Codex Mini Latest</strong></td>
+<td align="right">$1.50</td>
+<td align="right">$6.00</td>
+<td align="right">$0.375</td>
+</tr>
+<tr>
 <td>🟢 <strong>GPT-5.3 Codex</strong></td>
 <td align="right">$1.75</td>
 <td align="right">$14.00</td>
@@ -478,6 +497,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 </table>
 
 <sub>All prices in USD per million tokens. OpenAI bills reasoning tokens as part of <code>output_tokens</code>, so they aren't double-counted — the dashboard shows reasoning separately in the session detail modal for visibility only.</sub>
+<sub>Codex logs expose cached-input tokens (not cache-write tokens), so calculations use Input + Cache Read + Output. The collector keeps published cache-write rates for APIs that report them.</sub>
 
 ---
 

@@ -95,7 +95,18 @@
         </div>
 
         <div class="chart-card chart-card-full">
-            <h3>Daily Spend by Source <span class="chart-hint">click bar to filter</span></h3>
+            <div class="chart-heading-row">
+                <h3>Daily Spend by Source</h3>
+                <div class="chart-heading-actions">
+                    <div class="chart-range-control" id="chart-range-control" role="group" aria-label="Chart time range">
+                        <button type="button" class="chart-range-btn" data-range="day" aria-pressed="false">Today</button>
+                        <button type="button" class="chart-range-btn" data-range="week" aria-pressed="false">This week</button>
+                        <button type="button" class="chart-range-btn active" data-range="month" aria-pressed="true">This month</button>
+                        <button type="button" class="chart-range-btn" data-range="all" aria-pressed="false">All time</button>
+                    </div>
+                    <span class="chart-hint">click bar to filter</span>
+                </div>
+            </div>
             <div class="chart-canvas-wrap">
                 <canvas id="dailyChart"></canvas>
             </div>

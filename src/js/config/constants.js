@@ -26,6 +26,7 @@ export const modelColorMap = {
     'GPT': '#10a37f',
     'GPT-5': '#10a37f',
     'Codex': '#22c55e',
+    'gpt-6-astra': '#8b5cf6',
     'gpt-5.6-sol': '#10a37f',
     'gpt-5.6-terra': '#14b8a6',
     'gpt-5.6-luna': '#84cc16',
@@ -33,6 +34,7 @@ export const modelColorMap = {
     'gpt-5.4': '#22c55e',
     'gpt-5.4-mini': '#84cc16',
     'gpt-5.3-codex': '#0ea5e9',
+    'codex-mini-latest': '#38bdf8',
     'gpt-5.2': '#14b8a6',
 };
 
