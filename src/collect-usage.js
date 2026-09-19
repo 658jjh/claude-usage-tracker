@@ -858,69 +858,6 @@ function collectCodex() {
   return sessions;
 }
 
-// Codex emits the authoritative subscription rate-limit snapshot alongside
-// token counts. Keep this separate from session aggregation so cached session
-// files do not make the limits panel stale.
-function collectCodexRateLimits() {
-  const sessDir = path.join(HOME, '.codex/sessions');
-  let latest = null;
-  if (!fs.existsSync(sessDir)) return null;
-  for (const filePath of findJsonl(sessDir)) {
-    if (!path.basename(filePath).startsWith('rollout-')) continue;
-    let lines;
-    try { lines = fs.readFileSync(filePath, 'utf-8').split('\n'); } catch { continue; }
-    for (const line of lines) {
-      let entry;
-      try { entry = JSON.parse(line); } catch { continue; }
-      const rateLimits = entry.payload?.rate_limits;
-      if (entry.type !== 'event_msg' || entry.payload?.type !== 'token_count' || !rateLimits) continue;
-      const timestamp = parseTimestamp(entry.timestamp) || 0;
-      if (!latest || timestamp >= latest.timestamp) {
-        const limits = rateLimits;
-        const normalize = (bucket) => bucket ? {
-          used_percent: Number(bucket.used_percent ?? bucket.usedPercent ?? 0),
-          window_minutes: Number(bucket.window_minutes ?? bucket.windowDurationMins ?? 0),
-          resets_at: Number(bucket.resets_at ?? bucket.resetsAt ?? 0),
-        } : null;
-        latest = {
-          timestamp,
-          plan_type: limits.plan_type || limits.planType || null,
-          primary: normalize(limits.primary),
-          secondary: normalize(limits.secondary),
-        };
-      }
-    }
-  }
-  return latest;
-}
-
-// Claude transcripts expose per-request token usage, but not subscription
-// quota percentages. We surface the latest observed prompt footprint and make
-// the account-limit limitation explicit in the UI.
-function collectClaudeContextSnapshot() {
-  const roots = [path.join(HOME, '.claude/projects'), path.join(HOME, 'Library/Application Support/Claude/local-agent-mode-sessions')];
-  let latest = null;
-  for (const root of roots) {
-    if (!fs.existsSync(root)) continue;
-    for (const filePath of findJsonl(root)) {
-      let lines;
-      try { lines = fs.readFileSync(filePath, 'utf-8').split('\n'); } catch { continue; }
-      for (const line of lines) {
-        let entry;
-        try { entry = JSON.parse(line); } catch { continue; }
-        const message = entry.message;
-        const usage = message?.usage || entry.usage;
-        if (!usage) continue;
-        const timestamp = parseTimestamp(entry.timestamp) || parseTimestamp(message?.timestamp) || 0;
-        const contextTokens = (usage.input_tokens || 0) + (usage.cache_creation_input_tokens || 0) + (usage.cache_read_input_tokens || 0);
-        if (!contextTokens || (latest && timestamp < latest.timestamp)) continue;
-        latest = { timestamp, context_tokens: contextTokens, model: message?.model || entry.model || null };
-      }
-    }
-  }
-  return latest;
-}
-
 // ─── Main ────────────────────────────────────────────────
 
 console.log('AI Usage Collector v4');
@@ -1029,10 +966,6 @@ const summary = {
   session_counts: {
     ...sourceCounts,
     total: allSessions.length
-  },
-  limits: {
-    codex: collectCodexRateLimits(),
-    claude: collectClaudeContextSnapshot()
   }
 };
 
