@@ -18,6 +18,7 @@
     <!-- Component styles -->
     <link rel="stylesheet" href="css/components/header.css">
     <link rel="stylesheet" href="css/components/stat-cards.css">
+    <link rel="stylesheet" href="css/components/limits-panel.css">
     <link rel="stylesheet" href="css/components/charts.css">
     <link rel="stylesheet" href="css/components/filter-bar.css">
     <link rel="stylesheet" href="css/components/sessions-table.css">
@@ -93,6 +94,17 @@
                 <div class="subtext">Across all sources</div>
             </div>
         </div>
+
+        <section class="limits-panel" aria-labelledby="limits-heading">
+            <div class="limits-panel-header">
+                <div>
+                    <div class="section-kicker"><span class="section-kicker-dot"></span>Live account signals</div>
+                    <h2 id="limits-heading">Current limits</h2>
+                </div>
+                <span class="limits-updated" id="limits-updated">From latest local session data</span>
+            </div>
+            <div class="limits-grid" id="limits-grid" aria-live="polite"></div>
+        </section>
 
         <div class="chart-card chart-card-full">
             <div class="chart-heading-row">

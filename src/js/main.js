@@ -15,6 +15,7 @@ import {
     setupFilterListeners
 } from './components/filters.js';
 import { initHeatmap } from './components/heatmap.js';
+import { renderLimitsPanel } from './components/limits-panel.js';
 import { renderMonthlyProjection, updateYesterdayDelta } from './components/projections.js';
 import {
     renderSessionTable,
@@ -37,6 +38,7 @@ import {
 let allSessionsData = [];
 let totalSessionCount = 0;
 let currentSessionView = 'timeline';
+let currentLimits = null;
 
 window.toggleAllDays = toggleAllDays;
 window.toggleAllProjects = toggleAllProjects;
@@ -91,6 +93,7 @@ function updateTableHeader(view) {
 async function loadData() {
     try {
         const summary = window.__SUMMARY__;
+        currentLimits = summary?.limits || null;
         const openclawSessions = window.__OPENCLAW_SESSIONS__ || window.__CLAWDBOT_SESSIONS__ || [];
         const claudeSessions = window.__CLAUDE_SESSIONS__ || [];
         const codexSessions = window.__CODEX_SESSIONS__ || [];
@@ -104,6 +107,7 @@ async function loadData() {
         document.getElementById('today-date').textContent = summary.today;
         document.getElementById('month-name').textContent = new Date(summary.today + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
         document.getElementById('last-updated').textContent = new Date(summary.generated_at).toLocaleString();
+        renderLimitsPanel(currentLimits);
 
         renderMonthlyProjection(summary);
 
@@ -291,6 +295,7 @@ function reRenderDashboard(summary, sessions) {
     document.getElementById('month-cost').textContent = '$' + summary.month_cost.toFixed(2);
     document.getElementById('total-cost').textContent = '$' + summary.totals.grand_total.toFixed(2);
     document.getElementById('total-since').textContent = formatSinceLabel(sessions);
+    renderLimitsPanel(currentLimits);
     document.getElementById('session-count').textContent = sessions.length.toString();
 
     const thisWeekStart = getWeekStart(summary.today);
