@@ -84,6 +84,8 @@ export function parseJsonlConversation(raw) {
         if (!line.trim()) continue;
         let entry;
         try { entry = JSON.parse(line); } catch { continue; }
+        // Harness-injected content (skill bodies, caveats) is logged as a user turn.
+        if (entry.isMeta) continue;
         const msg = entry.message;
         if (!msg || typeof msg !== 'object') continue;
         const role = msg.role;
