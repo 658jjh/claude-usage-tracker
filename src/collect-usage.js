@@ -29,6 +29,9 @@ const CACHE_FILE = path.join(OUTPUT_DIR, 'sessions-cache.json');
 // Fingerprint of every JSONL file we've already parsed: {filePath: {mtime,size}}.
 // Lets us skip re-parsing files that haven't changed since the last run.
 const SCAN_INDEX_FILE = path.join(OUTPUT_DIR, 'scan-index.json');
+// Bump whenever a rate in getPricing / getCodexPricing changes: a scan index stamped
+// with another version is discarded, so every file is re-parsed at the new prices.
+const PRICING_VERSION = '2026-10-14';
 
 const HOME = os.homedir();
 const TZ_OFFSET = -new Date().getTimezoneOffset() / 60;
@@ -61,80 +64,117 @@ function parseTimestamp(ts) {
 const normalizeModel = (model) => model.toLowerCase().replace(/[._]/g, '-');
 
 // Anthropic USD per 1M tokens — platform.claude.com/docs/en/about-claude/pricing
-// (verified 2026-09-19). cacheWrite is the 5-minute write (1.25x input); cacheRead
-// is a cache hit (0.1x input), except Fable/Mythos 5.1 at 0.025x. Keep in sync
-// with src/js/utils/model-utils.js.
-function getPricing(model) {
-  if (!model) return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
+// (verified 2026-10-14). cacheWrite is the 5-minute write (1.25x input), cacheWrite1h
+// the 1-hour write (2x input), cacheRead a cache hit (0.1x input — 0.05x on Opus/Sonnet
+// 5.5, 0.025x on Fable/Mythos 5.1). Keep in sync with src/js/utils/model-utils.js.
+const claudeRates = (input, output, readMultiplier = 0.1) => ({
+  input, output, cacheWrite: input * 1.25, cacheWrite1h: input * 2, cacheRead: input * readMultiplier,
+});
+
+// "opus-5-5" -> 5.5, "sonnet-4-20250514" -> 4 (the (?!\d) guard skips 8-digit date
+// suffixes). An unversioned name like "opus" is treated as the newest release.
+function familyVersion(m, family) {
+  const v = m.match(new RegExp(`${family}-(\\d+)(?:-(\\d{1,2})(?!\\d))?`));
+  return v ? Number(v[1]) + (v[2] ? Number(v[2]) / 10 : 0) : Infinity;
+}
+
+// `promptTokens` (input + cache reads + cache writes of one request) only matters for
+// Haiku 5.5, which bills the whole request at 5x once its prompt passes 100K tokens.
+function getPricing(model, promptTokens = 0) {
+  if (!model) return claudeRates(3, 15);
   const m = normalizeModel(model);
 
-  if (m.includes('fable-5-1') || m.includes('mythos-5-1') || m.includes('mythos-preview'))
-    return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 0.25 };
-  if (m.includes('fable') || m.includes('mythos'))
-    return { input: 10, output: 50, cacheWrite: 12.50, cacheRead: 1.00 };
+  if (m.includes('mythos-preview')) return claudeRates(25, 125);
+  if (m.includes('fable-5-1') || m.includes('mythos-5-1')) return claudeRates(10, 50, 0.025);
+  if (m.includes('fable') || m.includes('mythos')) return claudeRates(10, 50);
 
   // Claude 3.x puts the version before the family name.
-  if (m.includes('3-opus'))
-    return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };
-  if (m.includes('3-7-sonnet') || m.includes('3-5-sonnet') || m.includes('3-sonnet'))
-    return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
-  if (m.includes('3-5-haiku'))
-    return { input: 0.80, output: 4, cacheWrite: 1.00, cacheRead: 0.08 };
-  if (m.includes('3-haiku'))
-    return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheRead: 0.03 };
+  if (m.includes('3-opus')) return claudeRates(15, 75);
+  if (m.includes('3-7-sonnet') || m.includes('3-5-sonnet') || m.includes('3-sonnet')) return claudeRates(3, 15);
+  if (m.includes('3-5-haiku')) return claudeRates(0.80, 4);
+  // Haiku 3's cache prices aren't the usual multiples of input.
+  if (m.includes('3-haiku')) return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheWrite1h: 0.50, cacheRead: 0.03 };
 
-  // Opus 4.5 and later dropped to $5/$25; Opus 4.0/4.1 stayed at $15/$75.
-  if (/opus-4-[5-9]/.test(m))
-    return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
-  if (m.includes('opus-4'))
-    return { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.50 };
-  if (m.includes('opus')) // Opus 5 and later
-    return { input: 5, output: 25, cacheWrite: 6.25, cacheRead: 0.50 };
-
-  // Sonnet 5 cut the rate to $2/$10; Sonnet 4.x and earlier are $3/$15.
-  if (m.includes('sonnet-4') || m.includes('sonnet-3'))
-    return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
-  if (m.includes('sonnet')) // Sonnet 5 and later
-    return { input: 2, output: 10, cacheWrite: 2.50, cacheRead: 0.20 };
-
-  if (m.includes('haiku-3-5'))
-    return { input: 0.80, output: 4, cacheWrite: 1.00, cacheRead: 0.08 };
-  if (m.includes('haiku-3'))
-    return { input: 0.25, output: 1.25, cacheWrite: 0.30, cacheRead: 0.03 };
-  if (m.includes('haiku')) // Haiku 4.5 and later
-    return { input: 1, output: 5, cacheWrite: 1.25, cacheRead: 0.10 };
+  if (m.includes('opus')) {
+    const v = familyVersion(m, 'opus');
+    if (v < 4.5) return claudeRates(15, 75);  // Opus 4.0 / 4.1
+    if (v < 5.5) return claudeRates(5, 25);   // Opus 4.5 – 5
+    return claudeRates(4, 20, 0.05);          // Opus 5.5 and later
+  }
+  if (m.includes('sonnet')) {
+    const v = familyVersion(m, 'sonnet');
+    if (v < 5) return claudeRates(3, 15);     // Sonnet 4.x and earlier
+    if (v < 5.5) return claudeRates(2, 10);   // Sonnet 5
+    return claudeRates(2, 10, 0.05);          // Sonnet 5.5 and later
+  }
+  if (m.includes('haiku')) {
+    const v = familyVersion(m, 'haiku');
+    if (v < 4) return claudeRates(0.80, 4);   // Haiku 3.5
+    if (v < 5) return claudeRates(1, 5);      // Haiku 4.5
+    return promptTokens > 100_000 ? claudeRates(0.50, 2.50) : claudeRates(0.10, 0.50); // Haiku 5.5 and later
+  }
 
   process.stderr.write(`[collect-usage] Unknown Claude model "${model}" — using Sonnet 4.6 pricing\n`);
-  return { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.30 };
+  return claudeRates(3, 15);
+}
+
+// Bills one Claude request. `cacheWrite1h` is the part of `cacheWrite` that went to the
+// 1-hour cache; the rest is billed as the 5-minute write. Fast mode is 2x standard on
+// every model that offers it, and US-only inference (`inference_geo: "us"`) is 1.1x.
+function claudeRequestCost(model, { input = 0, output = 0, cacheRead = 0, cacheWrite = 0, cacheWrite1h = 0, speed, inferenceGeo } = {}) {
+  const p = getPricing(model, input + cacheRead + cacheWrite);
+  const write1h = Math.min(cacheWrite1h, cacheWrite);
+  let cost = input * p.input + output * p.output + cacheRead * p.cacheRead
+    + (cacheWrite - write1h) * p.cacheWrite + write1h * p.cacheWrite1h;
+  if (speed === 'fast') cost *= 2;
+  if (inferenceGeo === 'us') cost *= 1.1;
+  return cost / 1_000_000;
 }
 
 // OpenAI USD per 1M tokens — developers.openai.com/api/docs/pricing (verified
-// 2026-09-19). Codex transcripts expose cached input tokens, not cache-write
+// 2026-10-14). Codex transcripts expose cached input tokens, not cache-write
 // tokens, so cacheWrite is retained for reference but is not used by this parser.
-function getCodexPricing(model) {
+// Models with a long-context tier bill the whole request at it once its input
+// (cached included) passes 272K tokens.
+function getCodexPricing(model, inputTokens = 0) {
   if (!model) return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
   const m = normalizeModel(model);
+  const tier = (short, long) => (inputTokens > 272_000 ? long : short);
 
-  if (m.includes('gpt-6-astra')) return { input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 };
-  if (m.includes('gpt-5-6-terra')) return { input: 2.00, output: 12.00, cacheWrite: 2.50, cacheRead: 0.20 };
-  if (m.includes('gpt-5-6-luna')) return { input: 0.20, output: 1.20, cacheWrite: 0.25, cacheRead: 0.02 };
-  if (m.includes('gpt-5-6-sol') || m === 'gpt-5-6' || m.startsWith('gpt-5-6-')) return { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 };
+  if (m.includes('gpt-6-astra')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
+  if (m.includes('gpt-6-1-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
+  if (m.includes('gpt-6-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.20 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.40 });
+  if (m.includes('gpt-6-luna')) return tier({ input: 0.10, output: 0.50, cacheWrite: 0.125, cacheRead: 0.01 }, { input: 0.20, output: 0.75, cacheWrite: 0.25, cacheRead: 0.02 });
+
+  if (m.includes('gpt-5-6-terra')) return tier({ input: 2.00, output: 12.00, cacheWrite: 2.50, cacheRead: 0.20 }, { input: 4.00, output: 18.00, cacheWrite: 5.00, cacheRead: 0.40 });
+  if (m.includes('gpt-5-6-luna')) return tier({ input: 0.20, output: 1.20, cacheWrite: 0.25, cacheRead: 0.02 }, { input: 0.40, output: 1.80, cacheWrite: 0.50, cacheRead: 0.04 });
+  // GPT-5.6 Sol is on promotional pricing through at least 2026-11-21.
+  if (m.includes('gpt-5-6-sol') || m === 'gpt-5-6' || m.startsWith('gpt-5-6-')) return tier({ input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.40 }, { input: 8.00, output: 30.00, cacheWrite: 10.00, cacheRead: 0.80 });
+
+  // Plain GPT-5 and gpt-5-codex, dated snapshots included — before the gpt-5.N rules,
+  // which would otherwise read "gpt-5-2025-08-07" as GPT-5.2.
+  if (/^gpt-5(-codex)?(-\d{4}-\d{2}-\d{2})?$/.test(m)) return { input: 1.25, output: 10.00, cacheWrite: 0, cacheRead: 0.125 };
 
   if (m.includes('codex-mini-latest')) return { input: 1.50, output: 6.00, cacheWrite: 0, cacheRead: 0.375 };
 
   if (m.includes('gpt-5-5-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
-  if (m.includes('gpt-5-5')) return { input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 };
+  if (m.includes('gpt-5-5')) return tier({ input: 5.00, output: 30.00, cacheWrite: 0, cacheRead: 0.50 }, { input: 10.00, output: 45.00, cacheWrite: 0, cacheRead: 1.00 });
 
-  if (m.includes('gpt-5-4-pro')) return { input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 };
+  if (m.includes('gpt-5-4-pro')) return tier({ input: 30.00, output: 180.00, cacheWrite: 0, cacheRead: 0 }, { input: 60.00, output: 270.00, cacheWrite: 0, cacheRead: 0 });
   if (m.includes('gpt-5-4-nano')) return { input: 0.20, output: 1.25, cacheWrite: 0, cacheRead: 0.02 };
   if (m.includes('gpt-5-4-mini')) return { input: 0.75, output: 4.50, cacheWrite: 0, cacheRead: 0.075 };
-  if (m.includes('gpt-5-4')) return { input: 2.50, output: 15.00, cacheWrite: 0, cacheRead: 0.25 };
+  if (m.includes('gpt-5-4')) return tier({ input: 2.50, output: 15.00, cacheWrite: 0, cacheRead: 0.25 }, { input: 5.00, output: 22.50, cacheWrite: 0, cacheRead: 0.50 });
 
   if (m.includes('gpt-5-3-codex')) return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 };
 
   if (m.includes('gpt-5-2-pro')) return { input: 21.00, output: 168.00, cacheWrite: 0, cacheRead: 0 };
-  if (m.includes('gpt-5-2')) return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 };
+  if (m.includes('gpt-5-2')) return { input: 1.75, output: 14.00, cacheWrite: 0, cacheRead: 0.175 }; // incl. gpt-5.2-codex
 
+  // gpt-5.1-codex(-max/-mini) and gpt-5-codex are no longer listed; last published rates.
+  if (m.includes('gpt-5-1-codex-mini')) return { input: 0.25, output: 2.00, cacheWrite: 0, cacheRead: 0.025 };
+  if (m.includes('gpt-5-1')) return { input: 1.25, output: 10.00, cacheWrite: 0, cacheRead: 0.125 };
+
+  if (m.includes('gpt-5-pro')) return { input: 15.00, output: 120.00, cacheWrite: 0, cacheRead: 0 };
   if (m.includes('gpt-5-mini')) return { input: 0.25, output: 2.00, cacheWrite: 0, cacheRead: 0.025 };
   if (m.includes('gpt-5-nano')) return { input: 0.05, output: 0.40, cacheWrite: 0, cacheRead: 0.005 };
 
@@ -340,7 +380,8 @@ function loadScanIndex() {
     if (!fs.existsSync(SCAN_INDEX_FILE)) return {};
     const raw = fs.readFileSync(SCAN_INDEX_FILE, 'utf-8');
     const data = JSON.parse(raw);
-    return (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+    if (!data || data.pricingVersion !== PRICING_VERSION) return {};
+    return (data.files && typeof data.files === 'object' && !Array.isArray(data.files)) ? data.files : {};
   } catch {
     return {};
   }
@@ -349,7 +390,7 @@ function loadScanIndex() {
 function saveScanIndex(index) {
   try {
     const tmp = SCAN_INDEX_FILE + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(index));
+    fs.writeFileSync(tmp, JSON.stringify({ pricingVersion: PRICING_VERSION, files: index }));
     fs.renameSync(tmp, SCAN_INDEX_FILE);
   } catch (e) {
     console.warn(`⚠️  Could not save scan index: ${e.message}`);
@@ -425,12 +466,12 @@ function parseOpenClawFormat(filePath) {
     if (usage.cost && usage.cost.total) {
       dd.cost += usage.cost.total;
     } else {
-      const pricing = getPricing(model);
-      const inp = usage.input || 0;
-      const out = usage.output || 0;
-      const cr = usage.cacheRead || 0;
-      const cw = usage.cacheWrite || 0;
-      dd.cost += (inp * pricing.input + out * pricing.output + cw * pricing.cacheWrite + cr * pricing.cacheRead) / 1000000;
+      dd.cost += claudeRequestCost(model, {
+        input: usage.input || 0,
+        output: usage.output || 0,
+        cacheRead: usage.cacheRead || 0,
+        cacheWrite: usage.cacheWrite || 0,
+      });
     }
     dd.input_tokens += (usage.input || 0);
     dd.output_tokens += (usage.output || 0);
@@ -478,8 +519,16 @@ function parseClaudeCodeFormat(filePath) {
     dd.cache_read += cacheRead;
     dd.cache_write += cacheWrite;
 
-    const pricing = getPricing(model);
-    dd.cost += (inputTok * pricing.input + outputTok * pricing.output + cacheWrite * pricing.cacheWrite + cacheRead * pricing.cacheRead) / 1000000;
+    dd.cost += claudeRequestCost(model, {
+      input: inputTok,
+      output: outputTok,
+      cacheRead,
+      cacheWrite,
+      // The API splits cache writes by TTL; older transcripts lack it and bill as 5-minute.
+      cacheWrite1h: (usage.cache_creation && usage.cache_creation.ephemeral_1h_input_tokens) || 0,
+      speed: usage.speed,
+      inferenceGeo: usage.inference_geo,
+    });
   }
   return dayData;
 }
@@ -526,8 +575,7 @@ function parseAiderFormat(filePath) {
     dd.cache_read += cacheRead;
     dd.cache_write += cacheWrite;
 
-    const pricing = getPricing(model);
-    dd.cost += (inputTok * pricing.input + outputTok * pricing.output + cacheWrite * pricing.cacheWrite + cacheRead * pricing.cacheRead) / 1000000;
+    dd.cost += claudeRequestCost(model, { input: inputTok, output: outputTok, cacheRead, cacheWrite });
   }
   return dayData;
 }
@@ -563,8 +611,7 @@ function parseContinueFormat(filePath) {
       dd.input_tokens += inputTok;
       dd.output_tokens += outputTok;
 
-      const pricing = getPricing(model);
-      dd.cost += (inputTok * pricing.input + outputTok * pricing.output) / 1000000;
+      dd.cost += claudeRequestCost(model, { input: inputTok, output: outputTok });
     }
   } catch {}
   return dayData;
@@ -643,7 +690,7 @@ function parseCodexFormat(filePath) {
     dd.cache_read += cachedTok;
     dd.reasoning_tokens += reasoningTok;
 
-    const pricing = getCodexPricing(currentModel);
+    const pricing = getCodexPricing(currentModel, inputTok);
     // Output already includes reasoning per OpenAI — do NOT add reasoning separately.
     dd.cost += (nonCached * pricing.input + cachedTok * pricing.cacheRead + outputTok * pricing.output) / 1_000_000;
   }
