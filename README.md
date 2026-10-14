@@ -161,7 +161,7 @@ This project is open source under the MIT license. You can build and use it your
 #### 🧮 Cost intelligence
 - Per-million-token pricing
 - Fable / Opus / Sonnet / Haiku tiers (Anthropic USD)
-- GPT-5.x / Codex tiers (OpenAI API USD)
+- GPT-6 / GPT-5.x / Codex tiers (OpenAI API USD)
 - Cache read / write + reasoning tokens
 - Most-expensive-session callout
 
@@ -316,7 +316,7 @@ open http://localhost:8765/dashboard.html
 
 Costs are calculated using each provider's per-million-token pricing — Anthropic's published USD for Claude, OpenAI API standard USD for Codex. Totals stay comparable in a single dollar figure regardless of which provider you're viewing.
 
-<sub>Rates below verified 2026-09-19 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
+<sub>Rates below verified 2026-10-14 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
 
 ### Anthropic Claude
 
@@ -325,7 +325,8 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <th align="left">Model</th>
 <th align="right">Input</th>
 <th align="right">Output</th>
-<th align="right">Cache Write</th>
+<th align="right">Cache Write (5m)</th>
+<th align="right">Cache Write (1h)</th>
 <th align="right">Cache Read</th>
 </tr>
 <tr>
@@ -333,6 +334,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$10.00</td>
 <td align="right">$50.00</td>
 <td align="right">$12.50</td>
+<td align="right">$20.00</td>
 <td align="right">$0.25</td>
 </tr>
 <tr>
@@ -340,13 +342,31 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$10.00</td>
 <td align="right">$50.00</td>
 <td align="right">$12.50</td>
+<td align="right">$20.00</td>
 <td align="right">$1.00</td>
+</tr>
+<tr>
+<td>🟣 <strong>Mythos Preview</strong></td>
+<td align="right">$25.00</td>
+<td align="right">$125.00</td>
+<td align="right">$31.25</td>
+<td align="right">$50.00</td>
+<td align="right">$2.50</td>
+</tr>
+<tr>
+<td>🔴 <strong>Opus 5.5</strong></td>
+<td align="right">$4.00</td>
+<td align="right">$20.00</td>
+<td align="right">$5.00</td>
+<td align="right">$8.00</td>
+<td align="right">$0.20</td>
 </tr>
 <tr>
 <td>🔴 <strong>Opus 5 / 4.5 — 4.8</strong></td>
 <td align="right">$5.00</td>
 <td align="right">$25.00</td>
 <td align="right">$6.25</td>
+<td align="right">$10.00</td>
 <td align="right">$0.50</td>
 </tr>
 <tr>
@@ -354,13 +374,23 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$15.00</td>
 <td align="right">$75.00</td>
 <td align="right">$18.75</td>
+<td align="right">$30.00</td>
 <td align="right">$1.50</td>
+</tr>
+<tr>
+<td>🔵 <strong>Sonnet 5.5</strong></td>
+<td align="right">$2.00</td>
+<td align="right">$10.00</td>
+<td align="right">$2.50</td>
+<td align="right">$4.00</td>
+<td align="right">$0.10</td>
 </tr>
 <tr>
 <td>🔵 <strong>Sonnet 5</strong></td>
 <td align="right">$2.00</td>
 <td align="right">$10.00</td>
 <td align="right">$2.50</td>
+<td align="right">$4.00</td>
 <td align="right">$0.20</td>
 </tr>
 <tr>
@@ -368,13 +398,31 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$3.00</td>
 <td align="right">$15.00</td>
 <td align="right">$3.75</td>
+<td align="right">$6.00</td>
 <td align="right">$0.30</td>
 </tr>
 <tr>
-<td>🔵 <strong>Haiku 4.0 / 4.5</strong></td>
+<td>🔵 <strong>Haiku 5.5</strong> (prompt ≤ 100K)</td>
+<td align="right">$0.10</td>
+<td align="right">$0.50</td>
+<td align="right">$0.125</td>
+<td align="right">$0.20</td>
+<td align="right">$0.01</td>
+</tr>
+<tr>
+<td>🔵 <strong>Haiku 5.5</strong> (prompt &gt; 100K)</td>
+<td align="right">$0.50</td>
+<td align="right">$2.50</td>
+<td align="right">$0.625</td>
+<td align="right">$1.00</td>
+<td align="right">$0.05</td>
+</tr>
+<tr>
+<td>🔵 <strong>Haiku 4.5</strong></td>
 <td align="right">$1.00</td>
 <td align="right">$5.00</td>
 <td align="right">$1.25</td>
+<td align="right">$2.00</td>
 <td align="right">$0.10</td>
 </tr>
 <tr>
@@ -382,6 +430,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$0.80</td>
 <td align="right">$4.00</td>
 <td align="right">$1.00</td>
+<td align="right">$1.60</td>
 <td align="right">$0.08</td>
 </tr>
 <tr>
@@ -389,11 +438,12 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$0.25</td>
 <td align="right">$1.25</td>
 <td align="right">$0.30</td>
+<td align="right">$0.50</td>
 <td align="right">$0.03</td>
 </tr>
 </table>
 
-<sub>Cache Write is the 5-minute write (1.25× input). The 1-hour write (2× input) isn't tracked separately — transcripts don't record the cache TTL. Fable/Mythos 5.1 cache reads are the documented 0.025× input exception.</sub>
+<sub>Cache writes are split by TTL using the <code>cache_creation</code> breakdown Claude Code records per request; tools that don't record a TTL are billed at the 5-minute rate. Cache reads are 0.1× input, except Opus/Sonnet 5.5 (0.05×) and Fable/Mythos 5.1 (0.025×). Haiku 5.5 bills a whole request at the higher row once its prompt (input + cache reads + cache writes) passes 100K tokens. Fast mode requests (<code>usage.speed: "fast"</code>) are billed at 2× and US-only inference (<code>inference_geo: "us"</code>) at 1.1×.</sub>
 
 ### OpenAI Codex
 
@@ -409,6 +459,24 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$10.00</td>
 <td align="right">$50.00</td>
 <td align="right">$1.00</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-6.1 Sol</strong></td>
+<td align="right">$2.00</td>
+<td align="right">$10.00</td>
+<td align="right">$0.10</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-6 Sol</strong></td>
+<td align="right">$2.00</td>
+<td align="right">$10.00</td>
+<td align="right">$0.20</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-6 Luna</strong></td>
+<td align="right">$0.10</td>
+<td align="right">$0.50</td>
+<td align="right">$0.01</td>
 </tr>
 <tr>
 <td>🟢 <strong>GPT-5.6 Sol</strong></td>
@@ -471,7 +539,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td align="right">$0.175</td>
 </tr>
 <tr>
-<td>🟢 <strong>GPT-5.2</strong></td>
+<td>🟢 <strong>GPT-5.2 / 5.2 Codex</strong></td>
 <td align="right">$1.75</td>
 <td align="right">$14.00</td>
 <td align="right">$0.175</td>
@@ -480,6 +548,30 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <td>🟢 <strong>GPT-5.2 Pro</strong></td>
 <td align="right">$21.00</td>
 <td align="right">$168.00</td>
+<td align="right">—</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-5.1 / 5.1 Codex / Codex Max</strong></td>
+<td align="right">$1.25</td>
+<td align="right">$10.00</td>
+<td align="right">$0.125</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-5.1 Codex Mini</strong></td>
+<td align="right">$0.25</td>
+<td align="right">$2.00</td>
+<td align="right">$0.025</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-5 / GPT-5 Codex</strong></td>
+<td align="right">$1.25</td>
+<td align="right">$10.00</td>
+<td align="right">$0.125</td>
+</tr>
+<tr>
+<td>🟢 <strong>GPT-5 Pro</strong></td>
+<td align="right">$15.00</td>
+<td align="right">$120.00</td>
 <td align="right">—</td>
 </tr>
 <tr>
@@ -498,6 +590,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 
 <sub>All prices in USD per million tokens. OpenAI bills reasoning tokens as part of <code>output_tokens</code>, so they aren't double-counted — the dashboard shows reasoning separately in the session detail modal for visibility only.</sub>
 <sub>Codex logs expose cached-input tokens (not cache-write tokens), so calculations use Input + Cache Read + Output. The collector keeps published cache-write rates for APIs that report them.</sub>
+<sub>Requests over 272K input tokens are billed at OpenAI's long-context rates on GPT-6, GPT-5.6, GPT-5.5, GPT-5.4 and GPT-5.4 Pro. GPT-5.6 Sol is on promotional pricing through at least 2026-11-21. GPT-5.1 Codex / Codex Max / Codex Mini and GPT-5 Codex are no longer listed by OpenAI and use their last published rates.</sub>
 
 ---
 
