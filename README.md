@@ -61,7 +61,7 @@ This project is open source under the MIT license. You can build and use it your
 
 ### 📦 Works with
 
-`OpenClaw` · `Clawdbot` · `Claude Code CLI` · `Claude Desktop` · `Cursor` · `Windsurf` · `Cline` · `Roo Code` · `Aider` · `Continue.dev` · `Codex CLI` · `Codex Exec` · `Codex Review`
+`OpenClaw` · `Clawdbot` · `Claude Code CLI` · `Claude Desktop` · `Cursor` · `Windsurf` · `Cline` · `Roo Code` · [`Zoo Code`](https://zoocode.dev/) · `Aider` · `Continue.dev` · `Codex CLI` · `Codex Exec` · `Codex Review`
 
 </td>
 </tr>
