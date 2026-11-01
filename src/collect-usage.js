@@ -31,7 +31,7 @@ const CACHE_FILE = path.join(OUTPUT_DIR, 'sessions-cache.json');
 const SCAN_INDEX_FILE = path.join(OUTPUT_DIR, 'scan-index.json');
 // Bump whenever a rate in getPricing / getCodexPricing changes: a scan index stamped
 // with another version is discarded, so every file is re-parsed at the new prices.
-const PRICING_VERSION = '2026-10-14';
+const PRICING_VERSION = '2026-11-01';
 
 const HOME = os.homedir();
 const TZ_OFFSET = -new Date().getTimezoneOffset() / 60;
@@ -64,7 +64,7 @@ function parseTimestamp(ts) {
 const normalizeModel = (model) => model.toLowerCase().replace(/[._]/g, '-');
 
 // Anthropic USD per 1M tokens — platform.claude.com/docs/en/about-claude/pricing
-// (verified 2026-10-14). cacheWrite is the 5-minute write (1.25x input), cacheWrite1h
+// (verified 2026-11-01). cacheWrite is the 5-minute write (1.25x input), cacheWrite1h
 // the 1-hour write (2x input), cacheRead a cache hit (0.1x input — 0.05x on Opus/Sonnet
 // 5.5, 0.025x on Fable/Mythos 5.1). Keep in sync with src/js/utils/model-utils.js.
 const claudeRates = (input, output, readMultiplier = 0.1) => ({
@@ -132,7 +132,7 @@ function claudeRequestCost(model, { input = 0, output = 0, cacheRead = 0, cacheW
 }
 
 // OpenAI USD per 1M tokens — developers.openai.com/api/docs/pricing (verified
-// 2026-10-14). Codex transcripts expose cached input tokens, not cache-write
+// 2026-11-01). Codex transcripts expose cached input tokens, not cache-write
 // tokens, so cacheWrite is retained for reference but is not used by this parser.
 // Models with a long-context tier bill the whole request at it once its input
 // (cached included) passes 272K tokens.
@@ -143,6 +143,7 @@ function getCodexPricing(model, inputTokens = 0) {
 
   if (m.includes('gpt-6-astra')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
   if (m.includes('gpt-6-1-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
+  if (m.includes('gpt-6-1-terra')) return tier({ input: 1.00, output: 5.00, cacheWrite: 1.25, cacheRead: 0.05 }, { input: 2.00, output: 7.50, cacheWrite: 2.50, cacheRead: 0.10 });
   if (m.includes('gpt-6-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.20 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.40 });
   if (m.includes('gpt-6-luna')) return tier({ input: 0.10, output: 0.50, cacheWrite: 0.125, cacheRead: 0.01 }, { input: 0.20, output: 0.75, cacheWrite: 0.25, cacheRead: 0.02 });
 
