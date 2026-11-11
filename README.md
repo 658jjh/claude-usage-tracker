@@ -316,7 +316,7 @@ open http://localhost:8765/dashboard.html
 
 Costs are calculated using each provider's per-million-token pricing — Anthropic's published USD for Claude, OpenAI API standard USD for Codex. Totals stay comparable in a single dollar figure regardless of which provider you're viewing.
 
-<sub>Rates below verified 2026-11-01 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
+<sub>Rates below verified 2026-11-11 against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic pricing</a> and <a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>.</sub>
 
 ### Anthropic Claude
 
@@ -328,6 +328,14 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <th align="right">Cache Write (5m)</th>
 <th align="right">Cache Write (1h)</th>
 <th align="right">Cache Read</th>
+</tr>
+<tr>
+<td>🟣 <strong>Fable 5.2 / Mythos 5.2</strong></td>
+<td align="right">$8.00</td>
+<td align="right">$40.00</td>
+<td align="right">$10.00</td>
+<td align="right">$16.00</td>
+<td align="right">$0.20</td>
 </tr>
 <tr>
 <td>🟣 <strong>Fable 5.1 / Mythos 5.1</strong></td>
@@ -443,7 +451,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 </tr>
 </table>
 
-<sub>Cache writes are split by TTL using the <code>cache_creation</code> breakdown Claude Code records per request; tools that don't record a TTL are billed at the 5-minute rate. Cache reads are 0.1× input, except Opus/Sonnet 5.5 (0.05×) and Fable/Mythos 5.1 (0.025×). Haiku 5.5 bills a whole request at the higher row once its prompt (input + cache reads + cache writes) passes 100K tokens. Fast mode requests (<code>usage.speed: "fast"</code>) are billed at 2× and US-only inference (<code>inference_geo: "us"</code>) at 1.1×.</sub>
+<sub>Cache writes are split by TTL using the <code>cache_creation</code> breakdown Claude Code records per request; tools that don't record a TTL are billed at the 5-minute rate. Cache reads are 0.1× input, except Opus/Sonnet 5.5 (0.05×) and Fable/Mythos 5.1 and 5.2 (0.025×). Haiku 5.5 bills a whole request at the higher row once its prompt (input + cache reads + cache writes) passes 100K tokens. Fast mode requests (<code>usage.speed: "fast"</code>) are billed at 2× and US-only inference (<code>inference_geo: "us"</code>) at 1.1×.</sub>
 
 ### OpenAI Codex
 
@@ -453,6 +461,24 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 <th align="right">Input</th>
 <th align="right">Output</th>
 <th align="right">Cache Read</th>
+</tr>
+<tr>
+<td>🟣 <strong>GPT-6 Cyber</strong></td>
+<td align="right">$20.00</td>
+<td align="right">$100.00</td>
+<td align="right">$2.00</td>
+</tr>
+<tr>
+<td>🟣 <strong>GPT-6 Rosalind</strong></td>
+<td align="right">$15.00</td>
+<td align="right">$75.00</td>
+<td align="right">$1.50</td>
+</tr>
+<tr>
+<td>🟣 <strong>GPT-6 Astra for Law</strong></td>
+<td align="right">$10.00</td>
+<td align="right">$50.00</td>
+<td align="right">$1.00</td>
 </tr>
 <tr>
 <td>🟣 <strong>GPT-6 Astra</strong></td>
@@ -596,7 +622,7 @@ Costs are calculated using each provider's per-million-token pricing — Anthrop
 
 <sub>All prices in USD per million tokens. OpenAI bills reasoning tokens as part of <code>output_tokens</code>, so they aren't double-counted — the dashboard shows reasoning separately in the session detail modal for visibility only.</sub>
 <sub>Codex logs expose cached-input tokens (not cache-write tokens), so calculations use Input + Cache Read + Output. The collector keeps published cache-write rates for APIs that report them.</sub>
-<sub>Requests over 272K input tokens are billed at OpenAI's long-context rates on GPT-6.x, GPT-5.6, GPT-5.5, GPT-5.4 and GPT-5.4 Pro. GPT-5.6 Sol is on promotional pricing through at least 2026-11-21. GPT-5.1 Codex / Codex Max / Codex Mini and GPT-5 Codex are no longer listed by OpenAI and use their last published rates.</sub>
+<sub>Requests over 272K input tokens are billed at OpenAI's long-context rates on GPT-6.x, GPT-5.6, GPT-5.5, GPT-5.4 and GPT-5.4 Pro. GPT-5.6 Sol is on promotional pricing through 2026-11-30. GPT-6 Cyber and Rosalind are Trusted Access models; GPT-6 Astra for Law has no long-context tier. GPT-5.1 Codex / Codex Max / Codex Mini and GPT-5 Codex are no longer listed by OpenAI and use their last published rates.</sub>
 
 ---
 
