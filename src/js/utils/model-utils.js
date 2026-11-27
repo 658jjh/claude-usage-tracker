@@ -1,11 +1,11 @@
 // Per-million-token pricing in USD.
 //
-// Claude rates: platform.claude.com/docs/en/about-claude/pricing (verified 2026-11-11).
+// Claude rates: platform.claude.com/docs/en/about-claude/pricing (verified 2026-11-27).
 //   cacheWrite is the 5-minute write (1.25x input), cacheWrite1h the 1-hour write (2x input),
 //   cacheRead a cache hit (0.1x input). Exceptions: Opus/Sonnet 5.5 hits are 0.05x and
 //   Fable/Mythos 5.1 and 5.2 hits are 0.025x. Haiku 5.5 bills the whole request at 5x once its
 //   prompt (input + cache reads + cache writes) passes 100K tokens.
-// OpenAI rates: developers.openai.com/api/docs/pricing (verified 2026-11-11).
+// OpenAI rates: developers.openai.com/api/docs/pricing (verified 2026-11-27).
 //   OpenAI cache writes are included for completeness; Codex transcripts expose cached
 //   input tokens but not cache-write tokens, so the collector only bills cache reads.
 //   Models with a long-context tier bill the whole request at it past 272K input tokens.
@@ -78,10 +78,17 @@ export function getPricingForModel(model, { promptTokens = 0, inputTokens = 0 } 
 function getCodexPricing(m, inputTokens) {
     const tier = (short, long) => (inputTokens > 272_000 ? long : short);
 
-    // Domain models (Trusted Access / Legal). Astra for Law lists no long-context tier.
+    // Domain models (Trusted Access / Legal / Healthcare). Legal, Healthcare and Rosalind
+    // configurations are on promotional pricing through at least 2026-12-31.
     if (m.includes('gpt-6-cyber')) return tier({ input: 20.00, output: 100.00, cacheWrite: 25.00, cacheRead: 2.00 }, { input: 40.00, output: 150.00, cacheWrite: 50.00, cacheRead: 4.00 });
-    if (m.includes('gpt-6-rosalind')) return tier({ input: 15.00, output: 75.00, cacheWrite: 18.75, cacheRead: 1.50 }, { input: 30.00, output: 112.50, cacheWrite: 37.50, cacheRead: 3.00 });
-    if (m.includes('gpt-6-astra-law')) return { input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 };
+    // GPT-5.6 Cyber and GPT-5.5 Cyber Preview list no long-context tier; checked before the gpt-5-6 / gpt-5-5 rules.
+    if (m.includes('gpt-5-6-cyber') || m.includes('gpt-5-5-cyber')) return { input: 12.50, output: 75.00, cacheWrite: 15.625, cacheRead: 1.25 };
+    if (m.includes('gpt-6-rosalind')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
+    if (m.includes('gpt-rosalind')) return { input: 5.00, output: 25.00, cacheWrite: 6.25, cacheRead: 0.50 }; // Research / Discovery
+    // GPT-6.2 Astra / Sol, incl. the -law and -healthcare configurations.
+    if (m.includes('gpt-6-2-astra')) return tier({ input: 8.00, output: 40.00, cacheWrite: 10.00, cacheRead: 0.40 }, { input: 16.00, output: 60.00, cacheWrite: 20.00, cacheRead: 0.80 });
+    if (m.includes('gpt-6-2-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
+    // GPT-6 Astra, incl. Astra for Law and Astra for Healthcare.
     if (m.includes('gpt-6-astra')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
     if (m.includes('gpt-6-1-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
     if (m.includes('gpt-6-1-terra')) return tier({ input: 1.00, output: 5.00, cacheWrite: 1.25, cacheRead: 0.05 }, { input: 2.00, output: 7.50, cacheWrite: 2.50, cacheRead: 0.10 });
@@ -134,8 +141,19 @@ export function getModelInfo(model) {
 
     // ── OpenAI / Codex ────────────────────────────────────────────────────
     if (m.includes('gpt-6-cyber')) return { name: 'GPT-6 Cyber', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-5-6-cyber')) return { name: 'GPT-5.6 Cyber', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-5-5-cyber')) return { name: 'GPT-5.5 Cyber Preview', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-6-rosalind')) return { name: 'GPT-6 Rosalind', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-rosalind-research')) return { name: 'GPT Rosalind Research', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-rosalind-discovery')) return { name: 'GPT Rosalind Discovery', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-2-astra-law')) return { name: 'GPT-6.2 Astra for Law', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-2-astra-healthcare')) return { name: 'GPT-6.2 Astra for Healthcare', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-2-astra')) return { name: 'GPT-6.2 Astra', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-2-sol-healthcare')) return { name: 'GPT-6.2 Sol for Healthcare', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-2-sol')) return { name: 'GPT-6.2 Sol', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-6-astra-law')) return { name: 'GPT-6 Astra for Law', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-astra-healthcare')) return { name: 'GPT-6 Astra for Healthcare', cls: 'model-gpt-frontier' };
+    if (m.includes('gpt-6-1-sol-healthcare')) return { name: 'GPT-6.1 Sol for Healthcare', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-6-astra')) return { name: 'GPT-6 Astra', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-6-1-sol')) return { name: 'GPT-6.1 Sol', cls: 'model-gpt-frontier' };
     if (m.includes('gpt-6-1-terra')) return { name: 'GPT-6.1 Terra', cls: 'model-gpt-frontier' };

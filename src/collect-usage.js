@@ -31,7 +31,7 @@ const CACHE_FILE = path.join(OUTPUT_DIR, 'sessions-cache.json');
 const SCAN_INDEX_FILE = path.join(OUTPUT_DIR, 'scan-index.json');
 // Bump whenever a rate in getPricing / getCodexPricing changes: a scan index stamped
 // with another version is discarded, so every file is re-parsed at the new prices.
-const PRICING_VERSION = '2026-11-11';
+const PRICING_VERSION = '2026-11-27';
 
 const HOME = os.homedir();
 const TZ_OFFSET = -new Date().getTimezoneOffset() / 60;
@@ -64,7 +64,7 @@ function parseTimestamp(ts) {
 const normalizeModel = (model) => model.toLowerCase().replace(/[._]/g, '-');
 
 // Anthropic USD per 1M tokens — platform.claude.com/docs/en/about-claude/pricing
-// (verified 2026-11-11). cacheWrite is the 5-minute write (1.25x input), cacheWrite1h
+// (verified 2026-11-27). cacheWrite is the 5-minute write (1.25x input), cacheWrite1h
 // the 1-hour write (2x input), cacheRead a cache hit (0.1x input — 0.05x on Opus/Sonnet
 // 5.5, 0.025x on Fable/Mythos 5.1 and 5.2). Keep in sync with src/js/utils/model-utils.js.
 const claudeRates = (input, output, readMultiplier = 0.1) => ({
@@ -133,7 +133,7 @@ function claudeRequestCost(model, { input = 0, output = 0, cacheRead = 0, cacheW
 }
 
 // OpenAI USD per 1M tokens — developers.openai.com/api/docs/pricing (verified
-// 2026-11-11). Codex transcripts expose cached input tokens, not cache-write
+// 2026-11-27). Codex transcripts expose cached input tokens, not cache-write
 // tokens, so cacheWrite is retained for reference but is not used by this parser.
 // Models with a long-context tier bill the whole request at it once its input
 // (cached included) passes 272K tokens.
@@ -142,10 +142,17 @@ function getCodexPricing(model, inputTokens = 0) {
   const m = normalizeModel(model);
   const tier = (short, long) => (inputTokens > 272_000 ? long : short);
 
-  // Domain models (Trusted Access / Legal). Astra for Law lists no long-context tier.
+  // Domain models (Trusted Access / Legal / Healthcare). Legal, Healthcare and Rosalind
+  // configurations are on promotional pricing through at least 2026-12-31.
   if (m.includes('gpt-6-cyber')) return tier({ input: 20.00, output: 100.00, cacheWrite: 25.00, cacheRead: 2.00 }, { input: 40.00, output: 150.00, cacheWrite: 50.00, cacheRead: 4.00 });
-  if (m.includes('gpt-6-rosalind')) return tier({ input: 15.00, output: 75.00, cacheWrite: 18.75, cacheRead: 1.50 }, { input: 30.00, output: 112.50, cacheWrite: 37.50, cacheRead: 3.00 });
-  if (m.includes('gpt-6-astra-law')) return { input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 };
+  // GPT-5.6 Cyber and GPT-5.5 Cyber Preview list no long-context tier; checked before the gpt-5-6 / gpt-5-5 rules.
+  if (m.includes('gpt-5-6-cyber') || m.includes('gpt-5-5-cyber')) return { input: 12.50, output: 75.00, cacheWrite: 15.625, cacheRead: 1.25 };
+  if (m.includes('gpt-6-rosalind')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
+  if (m.includes('gpt-rosalind')) return { input: 5.00, output: 25.00, cacheWrite: 6.25, cacheRead: 0.50 }; // Research / Discovery
+  // GPT-6.2 Astra / Sol, incl. the -law and -healthcare configurations.
+  if (m.includes('gpt-6-2-astra')) return tier({ input: 8.00, output: 40.00, cacheWrite: 10.00, cacheRead: 0.40 }, { input: 16.00, output: 60.00, cacheWrite: 20.00, cacheRead: 0.80 });
+  if (m.includes('gpt-6-2-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
+  // GPT-6 Astra, incl. Astra for Law and Astra for Healthcare.
   if (m.includes('gpt-6-astra')) return tier({ input: 10.00, output: 50.00, cacheWrite: 12.50, cacheRead: 1.00 }, { input: 20.00, output: 75.00, cacheWrite: 25.00, cacheRead: 2.00 });
   if (m.includes('gpt-6-1-sol')) return tier({ input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 }, { input: 4.00, output: 15.00, cacheWrite: 5.00, cacheRead: 0.20 });
   if (m.includes('gpt-6-1-terra')) return tier({ input: 1.00, output: 5.00, cacheWrite: 1.25, cacheRead: 0.05 }, { input: 2.00, output: 7.50, cacheWrite: 2.50, cacheRead: 0.10 });
